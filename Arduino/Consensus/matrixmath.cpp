@@ -6,7 +6,7 @@
  *  NUMERICAL RECIPES: The Art of Scientific Computing.
  */
 
-#include "MatrixMath.h"
+#include "matrixmath.h"
 
 #define NR_END 1
 
@@ -201,3 +201,18 @@ int MatrixMath::Invert(float* A, int n)
 	}
 	return 1;
 }
+
+void MatrixMath::MultiplyConst(float* A, int m, int n, float constant, float* C)
+{
+	// A = input matrix (m x n)
+	// m = number of rows in A = number of rows in B
+	// n = number of columns in A = number of columns in B
+	// C = output matrix = A+B (m x n)
+	int i, j;
+	for (i = 0; i < m; i++)
+		for(j = 0; j < n; j++) {
+		  C[n * i + j] = A[n * i + j]*(constant);
+		}
+			
+}
+

@@ -9,8 +9,8 @@
  *  so that it's easy to use and install (March 2015)
  */
 
-#ifndef MatrixMath_h
-#define MatrixMath_h
+#ifndef matrixmath_h
+#define matrixmath_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "Arduino.h"
@@ -30,6 +30,7 @@ public:
 	void Transpose(float* A, int m, int n, float* C);
 	void Scale(float* A, int m, int n, float k);
 	int Invert(float* A, int n);
+	void MultiplyConst(float* A, int m, int n, float constant, float* C);
 };
 
 extern MatrixMath Matrix;
