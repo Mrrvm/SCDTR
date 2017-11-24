@@ -37,9 +37,7 @@ void loop() {
   bool sol_boundary_100;
   bool sol_linear_0;
   bool sol_linear_100;
-  float c_neg[2] = {0, 0};
-  float y_neg[2] = {0, 0};
-  float d_av_rho[2] = {0, 0};
+  float aux[2] = {0, 0};
   
   for(int i=1; i<ITER_N; i++) {
     
@@ -53,12 +51,13 @@ void loop() {
     sol_linear_0 = 1;
     sol_linear_100 = 1;
     
-    Matrix.MultiplyConst((float*) c, 2, 1, -1, (float*) c_neg);
-    Matrix.MultiplyConst((float*) y_neg, 2, 1, -1, (float*) y);
-    Matrix.Add((float*) c_neg, (float*) y_neg, 2, 1, (float*) z);
-    Matrix.Add((float*) c_neg, (float*) y_neg, 2, 1, (float*) z);
-    Matrix.MultiplyConst((float*) d_av, 2, 1, rho, (float*) d_av_rho);
-    Matrix.Add((float*) z, (float*) d_av_rho, 2, 1, (float*) z);
+    
+    Matrix.MultiplyConst((float*) c, 2, 1, -1, (float*) aux);
+    Matrix.Add((float*) z, (float*) aux, 2, 1, (float*) z);
+    Matrix.MultiplyConst((float*) y, 2, 1, -1, (float*) aux);
+    Matrix.Add((float*) z, (float*) aux, 2, 1, (float*) z);
+    Matrix.MultiplyConst((float*) d_av, 2, 1, rho, (float*) aux);
+    Matrix.Add((float*) z, (float*) aux, 2, 1, (float*) z);
     Matrix.Print((float*) z, 2, 1, "result is:\n");
     
   }

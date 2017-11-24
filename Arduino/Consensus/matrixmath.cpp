@@ -105,13 +105,6 @@ void MatrixMath::Transpose(float* A, int m, int n, float* C)
 			C[m * j + i] = A[n * i + j];
 }
 
-void MatrixMath::Scale(float* A, int m, int n, float k)
-{
-	for (int i = 0; i < m; i++)
-		for (int j = 0; j < n; j++)
-			A[n * i + j] = A[n * i + j] * k;
-}
-
 
 //Matrix Inversion Routine
 // * This function inverts a matrix based on the Gauss Jordan method.

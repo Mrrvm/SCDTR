@@ -28,7 +28,6 @@ public:
 	void Add(float* A, float* B, int m, int n, float* C);
 	void Subtract(float* A, float* B, int m, int n, float* C);
 	void Transpose(float* A, int m, int n, float* C);
-	void Scale(float* A, int m, int n, float k);
 	int Invert(float* A, int n);
 	void MultiplyConst(float* A, int m, int n, float constant, float* C);
 };
