@@ -371,7 +371,6 @@ xlabel('d_1');
 ylabel('d_2');
 plot(d(1),d(2),'r*')
 axis([-10,110,-10,110]);
-hold off;
 
-    
+hold off;
 
