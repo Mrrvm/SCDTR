@@ -1,7 +1,7 @@
 /*
  *  MatrixMath.cpp Library for Matrix Math
  *
- *  Created by Charlie Matlack on 12/18/10.
+ *  Modified from Charlie Matlack.
  *  Modified from code by RobH45345 on Arduino Forums, algorithm from
  *  NUMERICAL RECIPES: The Art of Scientific Computing.
  */
@@ -10,7 +10,7 @@
 
 #define NR_END 1
 
-MatrixMath Matrix;			// Pre-instantiate
+MatrixMath Matrix; // Pre-instantiate
 
 // Matrix Printing Routine
 // Uses tabs to separate numbers under assumption printed float width won't cause problems
@@ -31,19 +31,21 @@ void MatrixMath::Print(float* A, int m, int n, String label)
 	}
 }
 
-void MatrixMath::Copy(float* A, int n, int m, float* B)
+float* MatrixMath::Copy(float* A, int n, int m)
 {
 	int i, j, k;
+	float B[m][n];
 	for (i = 0; i < m; i++)
 		for(j = 0; j < n; j++)
 		{
 			B[n * i + j] = A[n * i + j];
 		}
+	return B;
 }
 
 //Matrix Multiplication Routine
 // C = A*B
-void MatrixMath::Multiply(float* A, float* B, int m, int p, int n, float* C)
+float* MatrixMath::Multiply(float* A, float* B, int m, int p, int n)
 {
 	// A = input matrix (m x p)
 	// B = input matrix (p x n)
@@ -52,6 +54,7 @@ void MatrixMath::Multiply(float* A, float* B, int m, int p, int n, float* C)
 	// n = number of columns in B
 	// C = output matrix = A*B (m x n)
 	int i, j, k;
+	float C[m][n];
 	for (i = 0; i < m; i++)
 		for(j = 0; j < n; j++)
 		{
@@ -59,11 +62,12 @@ void MatrixMath::Multiply(float* A, float* B, int m, int p, int n, float* C)
 			for (k = 0; k < p; k++)
 				C[n * i + j] = C[n * i + j] + A[p * i + k] * B[n * k + j];
 		}
+	return C;
 }
 
 
 //Matrix Addition Routine
-void MatrixMath::Add(float* A, float* B, int m, int n, float* C)
+float* MatrixMath::Add(float* A, float* B, int m, int n)
 {
 	// A = input matrix (m x n)
 	// B = input matrix (m x n)
@@ -71,14 +75,16 @@ void MatrixMath::Add(float* A, float* B, int m, int n, float* C)
 	// n = number of columns in A = number of columns in B
 	// C = output matrix = A+B (m x n)
 	int i, j;
+	float C[m][n];
 	for (i = 0; i < m; i++)
 		for(j = 0; j < n; j++)
 			C[n * i + j] = A[n * i + j] + B[n * i + j];
+	return C;
 }
 
 
 //Matrix Subtraction Routine
-void MatrixMath::Subtract(float* A, float* B, int m, int n, float* C)
+float* MatrixMath::Subtract(float* A, float* B, int m, int n)
 {
 	// A = input matrix (m x n)
 	// B = input matrix (m x n)
@@ -86,23 +92,27 @@ void MatrixMath::Subtract(float* A, float* B, int m, int n, float* C)
 	// n = number of columns in A = number of columns in B
 	// C = output matrix = A-B (m x n)
 	int i, j;
+	float C[m][n];
 	for (i = 0; i < m; i++)
 		for(j = 0; j < n; j++)
 			C[n * i + j] = A[n * i + j] - B[n * i + j];
+	return C;
 }
 
 
 //Matrix Transpose Routine
-void MatrixMath::Transpose(float* A, int m, int n, float* C)
+float* MatrixMath::Transpose(float* A, int m, int n)
 {
 	// A = input matrix (m x n)
 	// m = number of rows in A
 	// n = number of columns in A
 	// C = output matrix = the transpose of A (n x m)
 	int i, j;
+	float C[m][n];
 	for (i = 0; i < m; i++)
 		for(j = 0; j < n; j++)
 			C[m * j + i] = A[n * i + j];
+	return C;
 }
 
 
@@ -195,17 +205,49 @@ int MatrixMath::Invert(float* A, int n)
 	return 1;
 }
 
-void MatrixMath::MultiplyConst(float* A, int m, int n, float constant, float* C)
+float* MatrixMath::MultiplyConst(float* A, int m, int n, float constant)
 {
 	// A = input matrix (m x n)
 	// m = number of rows in A = number of rows in B
 	// n = number of columns in A = number of columns in B
 	// C = output matrix = A+B (m x n)
 	int i, j;
+	float C[m][n];
 	for (i = 0; i < m; i++)
 		for(j = 0; j < n; j++) {
 		  C[n * i + j] = A[n * i + j]*(constant);
 		}
+	return C;
 			
+}
+
+float* MatrixMath::AddConst(float* A, int m, int n, float constant)
+{
+	// A = input matrix (m x n)
+	// m = number of rows in A = number of rows in B
+	// n = number of columns in A = number of columns in B
+	// C = output matrix = A+B (m x n)
+	int i, j;
+	float C[m][n];
+	for (i = 0; i < m; i++)
+		for(j = 0; j < n; j++) {
+		  C[n * i + j] = A[n * i + j]+(constant);
+		}
+	return C;	
+}
+
+float* MatrixMath::InvertElements(float* A, int m, int n)
+{
+	// A = input matrix (m x n)
+	// m = number of rows in A = number of rows in B
+	// n = number of columns in A = number of columns in B
+	// C = output matrix = A+B (m x n)
+	int i, j;
+	float C[m][n];
+	for (i = 0; i < m; i++)
+		for(j = 0; j < n; j++) {
+		  C[n * i + j] = 1/(A[n * i + j]);
+		}
+	return C;		
 }
 

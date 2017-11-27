@@ -54,8 +54,12 @@ for i=1:50,
    if (k11*d11u + k12*d12u < L1-o1), sol_unconstrained = 0; end;
    % compute function value and if best store new optimum
    if sol_unconstrained, 
-        min_unconstrained = 0.5*q1*d11u^2 + c1*d11u + y1(1)*(d11u-d1_av(1)) + ...
-           y1(2)*(d12u-d1_av(2)) + rho/2*(d11u-d1_av(1))^2 + rho/2*(d12u-d1_av(2))^2;
+        min_unconstrained = 0.5*q1*d11u^2 
+                          + c1*d11u 
+                          + y1(1)*(d11u-d1_av(1)) 
+                          + y1(2)*(d12u-d1_av(2)) 
+                          + rho/2*(d11u-d1_av(1))^2 
+                          + rho/2*(d12u-d1_av(2))^2;
        if min_unconstrained < min_best_1(i),
            d11_best = d11u;
            d12_best = d12u;
@@ -70,8 +74,12 @@ for i=1:50,
    if (d11bl > 100), sol_boundary_linear = 0; end;
    % compute function value and if best store new optimum
    if sol_boundary_linear, 
-        min_boundary_linear = 0.5*q1*d11bl^2 + c1*d11bl + y1(1)*(d11bl-d1_av(1)) + ...
-           y1(2)*(d12bl-d1_av(2)) + rho/2*(d11bl-d1_av(1))^2 + rho/2*(d12bl-d1_av(2))^2;
+        min_boundary_linear = 0.5*q1*d11bl^2 
+                              + c1*d11bl 
+                              + y1(1)*(d11bl-d1_av(1)) 
+                              + y1(2)*(d12bl-d1_av(2)) 
+                              + rho/2*(d11bl-d1_av(1))^2 
+                              + rho/2*(d12bl-d1_av(2))^2;
        if min_boundary_linear < min_best_1(i),
            d11_best = d11bl;
            d12_best = d12bl;
@@ -98,7 +106,7 @@ for i=1:50,
    d11b100 = 100;
    d12b100 = p12*z12;
    %check feasibility of minimum constrained to 100 boundary
-   if (d11b0 < 0), sol_boundary_100 = 0; end;
+   if (d11b100 < 0), sol_boundary_100 = 0; end;
    if (k11*d11b100 + k12*d12b100 < L1-o1), sol_boundary_100 = 0; end;
    % compute function value and if best store new optimum
    if sol_boundary_100, 

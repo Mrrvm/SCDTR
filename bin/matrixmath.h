@@ -1,7 +1,7 @@
 /*
  *  MatrixMath.h Library for Matrix Math
  *
- *  Created by Charlie Matlack on 12/18/10.
+ *  Modified from Charlie Matlack.
  *  Modified from code by RobH45345 on Arduino Forums, algorithm from
  *  NUMERICAL RECIPES: The Art of Scientific Computing.
  *  Modified to work with Arduino 1.0/1.5 by randomvibe & robtillaart
@@ -23,13 +23,15 @@ class MatrixMath
 public:
 	//MatrixMath();
 	void Print(float* A, int m, int n, String label);
-	void Copy(float* A, int n, int m, float* B);
-	void Multiply(float* A, float* B, int m, int p, int n, float* C);
-	void Add(float* A, float* B, int m, int n, float* C);
-	void Subtract(float* A, float* B, int m, int n, float* C);
-	void Transpose(float* A, int m, int n, float* C);
+	float* Copy(float* A, int n, int m);
+	float* Multiply(float* A, float* B, int m, int p, int n);
+	float* Add(float* A, float* B, int m, int n);
+	float* Subtract(float* A, float* B, int m, int n);
+	float* Transpose(float* A, int m, int n);
 	int Invert(float* A, int n);
-	void MultiplyConst(float* A, int m, int n, float constant, float* C);
+	float* MultiplyConst(float* A, int m, int n, float constant);
+	float* AddConst(float* A, int m, int n, float constant);
+	float* InvertElements(float* A, int m, int n);
 };
 
 extern MatrixMath Matrix;
