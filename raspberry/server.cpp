@@ -8,69 +8,81 @@ using namespace boost;
 using namespace boost::asio; 
 using ip::tcp;
 
-class tcp_conn : public enable_shared_from_this<tcp_conn> {
-  private:  
-     	tcp::socket sock_;
-     	std::string msg_;
-     	tcp_conn(io_service& io) : sock_(io) {}
-  
-      void handle_write(const boost::system::error_code& error,
-        size_t bytes_transferred)
-      {
-        // !! Here we handle the client requests !!
-        //std::cout << "Ready for client requests?";
-      }
+class conn : public enable_shared_from_this<conn> {
+    private:  
+        tcp::socket sock_;
+        std::string msg_;
+        boost::asio::streambuf input_buffer_;
 
-  public: 
-    static shared_ptr<tcp_conn> create(io_service& io) {
-      return shared_ptr<tcp_conn>(new tcp_conn(io));
-    }
+        conn(io_service& io) :  sock_(io)  {}
+        
+        void handle_client()   {
+            // Receives client requests
+             std::cout << "Waiting requests from client" << std::endl;
 
-    tcp::socket& socket() {return sock_;}
+            // maybe use a deadline here???? (check dat)
 
-    void start() {
-      msg_ = "Hello World\n";
-      async_write(sock_,buffer(msg_),
-      		boost::bind(&tcp_conn::handle_write, shared_from_this(),
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred)); 
-    }
+            // Start an asynchronous operation to read a newline-delimited message.
+            boost::asio::async_read_until(sock_, input_buffer_, '\n',
+                boost::bind(&conn::handle_request, shared_from_this(), _1));
+        }
+
+        void handle_request(const boost::system::error_code& ec) {
+            if (!ec) {
+                // Extract the newline-delimited message from the buffer.
+                std::string line;
+                std::istream is(&input_buffer_);
+                std::getline(is, line);
+
+                // Empty messages are heartbeats and so ignored.
+                if (!line.empty()) {
+                    std::cout << "Received: " << line << "\n";
+                    // Execute the command with I2C sniffer
+                }
+                handle_client();
+            }
+            else {
+                std::cout << "Error on receive: " << ec.message() << "\n";
+                // handle this!!!!!
+            }
+        }
+        void respond_client() {
+
+        }
+    public: 
+        static shared_ptr<conn> create(io_service& io) {
+            return shared_ptr<conn>(new conn(io));
+        }
+        tcp::socket& socket() {return sock_;}
+        void start() {
+            async_write(sock_,buffer("Ready for client\n"),
+              boost::bind(&conn::handle_client, shared_from_this())); 
+        }
 };
 
 class tcp_server {
-  private:  
-      tcp::acceptor acceptor_;
-  public:  
-      // when calling tcp_server constructor
-      // it instantiates the class acceptor to listen on TCP port 10000
-      // and runs start_accept
-      tcp_server(io_service& io)
-       : acceptor_(io, tcp::endpoint(tcp::v4(), 10000))  {
-          start_accept();
-       }
-  private:  
-    void start_accept() {
-      // gets the shared pointer 
-      shared_ptr<tcp_conn> new_tcp_conn =
-        tcp_conn::create(acceptor_.get_io_service());
-      // creates a socket and initiates an async accept
-      // when its tcp_connected handle_accept is triggered
-      acceptor_.async_accept(new_tcp_conn->socket(),
-        boost::bind(&tcp_server::handle_accept, this, new_tcp_conn));
-     }
-    void handle_accept(shared_ptr<tcp_conn> new_tcp_conn)  {
-      new_tcp_conn->start();
-
-      //std::cout << "Handling client connection!";
-
-      // gets ready for next tcp_connection
-      start_accept();
-     }
+    private:  
+        tcp::acceptor acceptor_;
+    public:  
+        tcp_server(io_service& io)
+        : acceptor_(io, tcp::endpoint(tcp::v4(), 10000))  {
+            start_accept();
+        }
+    private:  
+        void start_accept() {
+            shared_ptr<conn> new_conn =
+            conn::create(acceptor_.get_io_service());
+            acceptor_.async_accept(new_conn->socket(),
+               boost::bind(&tcp_server::handle_accept, this, new_conn));
+        }
+        void handle_accept(shared_ptr<conn> new_conn)  {
+            new_conn->start();
+            start_accept();
+        }
 };
 
-int main()  {
-    // read this http://think-async.com/Asio/asio-1.4.1/doc/asio/overview/core/basics.html
-    io_service io; // IO service linked to the OS
+int main() {
+    io_service io;
     tcp_server server(io);
-    io.run(); //
+    io.run();
 }
