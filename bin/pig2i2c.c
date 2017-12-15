@@ -72,12 +72,19 @@ static char * timeStamp()
    return buf;
 }
 
-void parse_I2C(int SCL, int SDA)
+float timediff(clock_t t1, clock_t t2) {
+    float elapsed;
+    elapsed = (((float)t2 - (float)t1) / CLOCKS_PER_SEC * 1000000);
+    return elapsed;
+}
+
+void parse_I2C(int SCL, int SDA, clock_t t1)
 {
    static int in_data=0, byte=0, bit=0;
    static int oldSCL=1, oldSDA=1;
 
    int xSCL, xSDA;
+
 
    if (SCL != oldSCL)
    {
@@ -144,7 +151,7 @@ void parse_I2C(int SCL, int SDA)
             in_data = 1;
             byte = 0;
             bit = 0;
-
+            printf("%f : ",  timediff(t1, clock()));
             printf("["); // start
          }
          break;
@@ -160,6 +167,7 @@ int main(int argc, char * argv[])
    int gSCL, gSDA, SCL, SDA, xSCL;
    int r;
    uint32_t level, changed, bI2C, bSCL, bSDA;
+   clock_t t1;
 
    gpioReport_t report;
 
@@ -183,6 +191,8 @@ int main(int argc, char * argv[])
    SCL = 1;
    SDA = 1;
    level = bI2C;
+   t1 = clock();
+   printf("%ld\n", t1);
 
    while ((r=read(STDIN_FILENO, &report, RS)) == RS)
    {
@@ -197,7 +207,7 @@ int main(int argc, char * argv[])
          if (level & bSCL) SCL = 1; else SCL = 0;
          if (level & bSDA) SDA = 1; else SDA = 0;
 
-         parse_I2C(SCL, SDA);
+         parse_I2C(SCL, SDA, t1);
       }
    }
    return 0;

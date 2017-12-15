@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
    pi = pigpio.pi()
 
-   s = I2C_sniffer.sniffer(pi, 1, 0, False) # leave gpios 1/0 in I2C mode
+   s = I2C_sniffer.sniffer(pi, 3, 2, False) # leave gpios 1/0 in I2C mode
 
    time.sleep(60000)
 

@@ -103,13 +103,10 @@ class tcp_server {
 class serialClass {
     private:
         serial_port sp;
-        deadline_timer tim;
-        int counter;
         std::ostringstream os;
     public:
         serialClass(io_service& io) 
-        : sp(io), tim(io) {
-            counter = 0;
+        : sp(io) {
             sp.open("/dev/ttyACM0");    
             sp.set_option(serial_port_base::baud_rate(9600));
             request_handler();
