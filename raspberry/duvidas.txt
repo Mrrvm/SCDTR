@@ -1,9 +1,0 @@
-adicionar uma deadline? o que faz exactamente?
-
-Operation cancelled by client...
-
-this is already multiclient so then why do threads?
-
-i can just use strand on i2c sniffer?
-
-why dafuq do i need threads?????

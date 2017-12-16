@@ -1,6 +1,3 @@
-/*
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -10,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <string.h>
 
 #include "pigpio.h"
 
@@ -57,30 +55,9 @@ e.g. ./pig2i2c 9 11 </dev/pigpio0 # monitor external bus
 #define SDA_RISING  4
 #define SDA_STEADY  8
 
-static char * timeStamp()
+int parse_I2C(int SCL, int SDA)
 {
-   static char buf[32];
-
-   struct timeval now;
-   struct tm tmp;
-
-   gettimeofday(&now, NULL);
-
-   localtime_r(&now.tv_sec, &tmp);
-   strftime(buf, sizeof(buf), "%F %T", &tmp);
-
-   return buf;
-}
-
-float timediff(clock_t t1, clock_t t2) {
-    float elapsed;
-    elapsed = (((float)t2 - (float)t1) / CLOCKS_PER_SEC * 1000000);
-    return elapsed;
-}
-
-void parse_I2C(int SCL, int SDA, clock_t t1)
-{
-   static int in_data=0, byte=0, bit=0;
+   static int in_data=0, byte=0, bit=0, ret_byte=0;
    static int oldSCL=1, oldSDA=1;
 
    int xSCL, xSDA;
@@ -116,8 +93,7 @@ void parse_I2C(int SCL, int SDA, clock_t t1)
             }
             else
             {
-               printf("%d", byte);
-               if (SDA) printf("-"); else printf("+");
+               ret_byte = byte;
                bit = 0;
                byte = 0;
             }
@@ -139,9 +115,6 @@ void parse_I2C(int SCL, int SDA, clock_t t1)
             in_data = 0;
             byte = 0;
             bit = 0;
-
-            printf("]\n"); // stop
-            fflush(NULL);
          }
          break;
 
@@ -151,8 +124,6 @@ void parse_I2C(int SCL, int SDA, clock_t t1)
             in_data = 1;
             byte = 0;
             bit = 0;
-            printf("%f : ",  timediff(t1, clock()));
-            printf("["); // start
          }
          break;
 
@@ -160,6 +131,7 @@ void parse_I2C(int SCL, int SDA, clock_t t1)
          break;
 
    }
+   return ret_byte;
 }
 
 int main(int argc, char * argv[])
@@ -168,7 +140,14 @@ int main(int argc, char * argv[])
    int r;
    uint32_t level, changed, bI2C, bSCL, bSDA;
    clock_t t1;
+   int byte = 0, prev_byte = 0;
+   int fd;
+   char * myfifo = "myfifo";
+   char buff[64];
+   int counter = 0;
+   mkfifo(myfifo, 0666);
 
+   fd = open(myfifo, O_WRONLY);
    gpioReport_t report;
 
    if (argc > 2)
@@ -191,8 +170,6 @@ int main(int argc, char * argv[])
    SCL = 1;
    SDA = 1;
    level = bI2C;
-   t1 = clock();
-   printf("%ld\n", t1);
 
    while ((r=read(STDIN_FILENO, &report, RS)) == RS)
    {
@@ -207,9 +184,47 @@ int main(int argc, char * argv[])
          if (level & bSCL) SCL = 1; else SCL = 0;
          if (level & bSDA) SDA = 1; else SDA = 0;
 
-         parse_I2C(SCL, SDA, t1);
+         byte = parse_I2C(SCL, SDA);
+         
+         if(byte != prev_byte) {
+            
+            if(prev_byte == 97) {
+               snprintf(buff, 64, "a %d\n", byte);
+               if(write(fd, buff, strlen(buff)+1) < 0) {
+                  printf("Error\n");
+                  exit(0);
+               }
+               printf("%s", buff);
+            }
+            else if(prev_byte == 100) {
+               snprintf (buff, 64, "d %d\n", byte);
+               /*if(write(fd, buff, strlen(buff)+1) < 0) {
+                  printf("Error\n");
+                  exit(0);
+               }*/
+               printf("%s", buff);
+            }
+            else if(prev_byte == 111) {
+               snprintf (buff, 64, "o %d\n", byte);
+               /*if(write(fd, buff, strlen(buff)+1) < 0) {
+                  printf("Error\n");
+                  exit(0);
+               }*/
+               printf("%s\n", buff);
+            }
+            else if(prev_byte == 108) {
+               snprintf (buff, 64, "l %d\n", byte);
+               /*if(write(fd, buff, strlen(buff)+1) < 0) {
+                  printf("Error\n");
+                  exit(0);
+               }*/
+               printf("%s", buff);
+            }
+         }
+         prev_byte = byte;     
       }
    }
+   close(fd);
    return 0;
 }
 
