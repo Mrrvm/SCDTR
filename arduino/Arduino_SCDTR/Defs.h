@@ -1,7 +1,11 @@
 #ifndef DEFS_h
 #define DEFS_h
 
+#include <Wire.h>
+#include <EEPROM.h>
+
 #include "Arduino.h"
+#include "MatrixMath.h"
 
 // Defining constants and pins
 //#define A -0.61092
