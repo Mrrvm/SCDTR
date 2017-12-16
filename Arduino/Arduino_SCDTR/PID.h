@@ -5,7 +5,8 @@
 #include "Defs.h"
 #include <Wire.h>
 
-
+extern int my_address;
+extern byte step2;
 
 //PID class
 
@@ -28,6 +29,10 @@ class PID
       double GetPWMPercent();
       int GetFullResponse();
       bool GetOccupancy();
+      
+      float K[N];
+      float o;
+      float d[N][N];
   
   private:
   
@@ -55,6 +60,8 @@ class PID
   
       bool feedforward_on;
       bool occupancy;
+      
+      void Consensus();             //consensus method
   
 };
 
