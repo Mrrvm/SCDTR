@@ -198,26 +198,26 @@ int main(int argc, char * argv[])
             }
             else if(prev_byte == 100) {
                snprintf (buff, 64, "d %d\n", byte);
-               /*if(write(fd, buff, strlen(buff)+1) < 0) {
+               if(write(fd, buff, strlen(buff)+1) < 0) {
                   printf("Error\n");
                   exit(0);
-               }*/
+               }
                printf("%s", buff);
             }
             else if(prev_byte == 111) {
                snprintf (buff, 64, "o %d\n", byte);
-               /*if(write(fd, buff, strlen(buff)+1) < 0) {
+               if(write(fd, buff, strlen(buff)+1) < 0) {
                   printf("Error\n");
                   exit(0);
-               }*/
+               }
                printf("%s\n", buff);
             }
             else if(prev_byte == 108) {
                snprintf (buff, 64, "l %d\n", byte);
-               /*if(write(fd, buff, strlen(buff)+1) < 0) {
+               if(write(fd, buff, strlen(buff)+1) < 0) {
                   printf("Error\n");
                   exit(0);
-               }*/
+               }
                printf("%s", buff);
             }
          }
