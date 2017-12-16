@@ -144,8 +144,10 @@ int main(int argc, char * argv[])
    int fd;
    char * myfifo = "myfifo";
    char buff[64];
+   int counter = 0;
    mkfifo(myfifo, 0666);
 
+   fd = open(myfifo, O_WRONLY);
    gpioReport_t report;
 
    if (argc > 2)
@@ -185,30 +187,37 @@ int main(int argc, char * argv[])
          byte = parse_I2C(SCL, SDA);
          
          if(byte != prev_byte) {
-            fd = open(myfifo, O_WRONLY);
             
             if(prev_byte == 97) {
                snprintf(buff, 64, "a %d\n", byte);
-               if(write(fd, buff, strlen(buff)+1) < 0)
+               if(write(fd, buff, strlen(buff)+1) < 0) {
+                  printf("Error\n");
                   exit(0);
+               }
                printf("%s", buff);
             }
             else if(prev_byte == 100) {
                snprintf (buff, 64, "d %d\n", byte);
-               if(write(fd, buff, strlen(buff)+1) < 0)
+               /*if(write(fd, buff, strlen(buff)+1) < 0) {
+                  printf("Error\n");
                   exit(0);
+               }*/
                printf("%s", buff);
             }
             else if(prev_byte == 111) {
                snprintf (buff, 64, "o %d\n", byte);
-               if(write(fd, buff, strlen(buff)+1) < 0)
+               /*if(write(fd, buff, strlen(buff)+1) < 0) {
+                  printf("Error\n");
                   exit(0);
-               printf("%s", buff);
+               }*/
+               printf("%s\n", buff);
             }
             else if(prev_byte == 108) {
                snprintf (buff, 64, "l %d\n", byte);
-               if(write(fd, buff, strlen(buff)+1) < 0)
+               /*if(write(fd, buff, strlen(buff)+1) < 0) {
+                  printf("Error\n");
                   exit(0);
+               }*/
                printf("%s", buff);
             }
          }
