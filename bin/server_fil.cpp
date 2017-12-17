@@ -38,7 +38,7 @@ class conn : public enable_shared_from_this<conn> {
 
         void handle_request(const boost::system::error_code& ec) {
 		
-		char c;
+		    char c;
             if (!ec) {
                 // Extract the newline-delimited message from the buffer.
                 std::string line;
@@ -159,7 +159,7 @@ class contas{
 			}
 		}
 			
-}
+};
 
 
 int main() {

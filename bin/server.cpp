@@ -122,20 +122,11 @@ class serialClass {
         }
 };
 
-class sniffClass {
-    private:
-
-    public:
-        void 
-    private:
-};
-
 int main() {
     io_service io_main, io_sniff, io_serial;
 
     // Sniffing thread
     std::thread thread_sniff {[&io_sniff](){
-        sniffClass sniff(io_sniff);
         io_sniff.run();
     }};
 
