@@ -1,1 +1,1 @@
-{"cpu":{"name":"Arduino/Genuino Uno","com_name":"COM13","fqbn":"arduino:avr:uno","flavour":"default"},"secrets":[]}
+{"cpu":{"fqbn":"arduino:avr:uno","name":"Arduino/Genuino Uno","port":""},"secrets":[]}
