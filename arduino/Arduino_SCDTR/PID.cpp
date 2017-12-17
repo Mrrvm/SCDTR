@@ -505,7 +505,7 @@ void PID::Consensus(){
   int u[N]={0};
   for(int i=0;i<N;++i)
     u[i]=(int)(K[my_address-1]*1000);
-  byte r=(byte)reference;
+  byte ref=(byte)reference;
   Wire.beginTransmission(0);
   Wire.write("i");
   Wire.write(my_address);
@@ -513,7 +513,7 @@ void PID::Consensus(){
     Wire.write(lowByte(u[j]));
     Wire.write(highByte(u[j]));
   }
-  Wire.write(r);
+  Wire.write(ref);
   Wire.endTransmission();
   feedforward=d_av[my_address-1][0];
   

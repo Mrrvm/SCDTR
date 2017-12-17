@@ -9,6 +9,7 @@ double other_sum=0;
 //float K[N]={0};
 //float o=0;
 //float d[N][N]={0};
+bool beginning=1;
 
 byte step=1;
 byte step2=1;
@@ -78,13 +79,18 @@ void calib(){
 
 
 void receiveEvent(int howMany)	{
-  while(Wire.available() >	0)	{
     char phase=0;
     int h=0;
     int b=0;
+    while(Wire.available() >	0)	{
+
+    //Serial.println("recebi");
     if(howMany>0) phase=Wire.read();
     if(howMany>1) h=Wire.read();
-    if(howMany>2) b=Wire.read();
+    if(howMany>2) b=Wire.read();}
+    //Serial.println(phase);
+    //if(howMany>3) break;
+    //Serial.println("passou");
     //Serial.println(phase);
     //Serial.println(h);
     //Serial.println(b);
@@ -113,16 +119,22 @@ void receiveEvent(int howMany)	{
       if(h==N-1) step2++;
     }
     if(phase==122){
+      Serial.println("vai comecar o consensus");
       call_consensus=1;
     }
     if(phase==114){
+      Serial.println("vai comecar a calib");
       calibrated=0;
     }
     if(phase==115){
       if(h==(my_address-1)*2+1) {change_occupancy[1]=0; change_occupancy[0]=1;}
       if(h==(my_address-1)*2+2) {change_occupancy[1]=1; change_occupancy[0]=1;}
     }
-  }
+    if(phase==98 && beginning==0){
+      Serial.println("vai comecar a recalib");
+      calibrated=0;
+    }
+  //}
 }
 
 
@@ -137,8 +149,10 @@ void setup() {
   Wire.begin(my_address);
   TWAR = (my_address << 1) | 1;
   Wire.onReceive(receiveEvent);
-  //for(int l=0;l<N;++l)
-  //  d_av[l][0]=20;
+  Wire.beginTransmission(0);
+  Wire.write("b");
+  Wire.endTransmission();
+  beginning=0;
 }
 
 void loop() {
@@ -199,6 +213,7 @@ void loop() {
         Wire.endTransmission();
       }
       if(serial_read==N*2+1){ 
+        Serial.println("aqui");
         Wire.beginTransmission(0);
         Wire.write("r");
         Wire.endTransmission();
