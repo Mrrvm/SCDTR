@@ -10,6 +10,8 @@
 # Unignore all dirs
 !*/
 
+!makefile
+
 # Object files
 *.o
 *.ko
@@ -20,4 +22,3 @@
 *.tgz
 *.zip
 *.tar
-

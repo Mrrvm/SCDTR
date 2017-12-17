@@ -61,9 +61,7 @@ class conn : public enable_shared_from_this<conn> {
               }
               // get
               if(c == 103) {
-                int space = line.find_last_of(" ");
-                std::string ino_n = line.substr(2, space-2);
-                //resolve_get(ino_n, line.at(space+1));
+
               }
               if(c == 98) {
 
@@ -134,7 +132,7 @@ class sniff {
     boost::asio::streambuf buffer;
     std::chrono::steady_clock::time_point begin, end; 
     int index, index_prev, val_a;
-    long long int timestamp;
+    int timestamp;
     float val_d, val_l;
     bool val_o;
     std::string line;
@@ -175,6 +173,7 @@ class sniff {
           val_o = (bool)stoi(line.substr(index+1, 1));
 
           inoData[val_a].StoreNewData(timestamp, val_l, val_d, val_o);
+          std::cout << "illuminance is " << inoData[val_a].GetIlluminance() << "\n";
         }
         // i
         if(line.at(0) == 105) {

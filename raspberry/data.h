@@ -14,7 +14,7 @@ private:
   
   
   //data
-  std::vector <float> t;
+  std::vector <int> t;
   std::vector <float> l;
   std::vector <float> d;
   std::vector <float> o;
@@ -32,12 +32,14 @@ private:
 public:
   Data(int);
 
-  void StoreNewData(float,float, float, bool);
+  void StoreNewData(int,float, float, bool);
   void ComputeEnergy();
 
   void SetGains(std::vector<float>);
 
   void SetReference(float r_);
+
+  int GetTimestamp();
 		  
   float GetIlluminance();
 

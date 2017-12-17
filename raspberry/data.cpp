@@ -16,7 +16,7 @@ Data::Data(int id_){
     accE=0;
 }
 
-void Data::StoreNewData(float t_,float l_, float d_, bool o_){
+void Data::StoreNewData(int t_, float l_, float d_, bool o_){
     t.push_back(t_);
     l.push_back(l_);
     d.push_back(d_);
@@ -25,7 +25,7 @@ void Data::StoreNewData(float t_,float l_, float d_, bool o_){
 }
 
 void Data::ComputeEnergy(){
-    std::vector<float>::iterator it=t.end();
+    std::vector<int>::iterator it=t.end();
     E.push_back(d.back()*( *(it-1)-*(it-2) ) );
     accE+=E.back();
 }
@@ -36,6 +36,10 @@ void Data::SetGains(std::vector<float> k_){
 
 void Data::SetReference(float r_){
     r=r_;
+}
+
+int Data::GetTimestamp() {
+    return t.back();
 }
 		  
 float Data::GetIlluminance(){
@@ -55,7 +59,7 @@ float Data::GetAccumulatedEnergy(){
 }
 
 float Data::GetIlluminanceLowerBound(){
-    if(o.back()==FALSE) return 25;
+    if(o.back()==0) return 25;
     else return 50;
 }
 
