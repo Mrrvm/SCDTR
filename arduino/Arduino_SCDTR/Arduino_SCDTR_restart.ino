@@ -40,10 +40,17 @@ bool loop_calib(){
 	  myPID.o+=lux_converter(sensorVoltage);
   }
   myPID.o=myPID.o/C;
+  unsigned long start_while=millis();
   while(step<=N){
       delay(5);
       if(step==my_address){
         calib();
+      }
+      
+      if(millis()-start_while>30000+5000*C*N){ //detect if arduino is dead
+        myPID.K[step-1]=0;
+        step++;
+        start_while=millis();
       }
     }
   step=1;
@@ -164,7 +171,8 @@ void loop() {
     Serial.println(myPID.K[1],5);
   }
   
-  
+  bool sendData=0;
+
   unsigned long startTime=millis(); 
   //time at start of loop
   digitalWrite(13, HIGH);
@@ -174,7 +182,7 @@ void loop() {
   sensorValue=sensorValue/MEASURES;  
   double sensorVoltage=map_double(sensorValue,0,1023,0,5); //maps input to voltage interval 0-5
   double sensorLux=lux_converter(sensorVoltage);             //converts to lux
-  myPID.Control(sensorLux);  //computes with input in lux
+  sendData=myPID.Control(sensorLux);  //computes with input in lux
   //Serial.println(sensorLux);
   /*String message = String(myPID.GetReference());
   message += (" "+String(sensorLux));
@@ -183,6 +191,7 @@ void loop() {
   message += (" "+String(millis()));
   Serial.println(message);*/
   
+  if(sendData){
   byte li=(byte)sensorLux;
   byte di=(byte)(myPID.GetFullResponse());
   byte occi=(byte)(myPID.GetOccupancy());
@@ -195,7 +204,7 @@ void loop() {
   Wire.write(di);
   Wire.write("o");
   Wire.write(occi);
-  Wire.endTransmission();
+  Wire.endTransmission();}
 
   unsigned long endTime=millis();                     //time at end of loop
   delay(sample-(endTime-startTime));                  //delay to avoid over computation of "control"

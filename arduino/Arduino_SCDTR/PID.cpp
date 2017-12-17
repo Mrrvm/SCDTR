@@ -462,6 +462,7 @@ void PID::Consensus(){
         a[l]=(byte)d[l][my_address-1];
       //step2=1;
       
+      unsigned long start_while=millis();
       while(step2<=N){
         delay(1);
         if(step2==my_address){
@@ -473,6 +474,11 @@ void PID::Consensus(){
             Wire.endTransmission();
           }
           step2++;
+        }
+        if(millis()-start_while>5000+1000*C*N){ //detect if arduino is dead
+          for(int l=0;l<N;++l) {d[l][step2-1]=0;}
+          step2++;
+          start_while=millis();
         }
       }
 
