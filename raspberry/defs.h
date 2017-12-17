@@ -6,5 +6,6 @@
 #include <boost/shared_ptr.hpp>
 #include <condition_variable>
 #include <mutex>
+#include <string>
 #include <vector>
 #define N_inos 2

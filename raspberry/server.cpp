@@ -1,3 +1,4 @@
+#include "defs.h"
 using namespace boost; 
 using namespace boost::asio; 
 using ip::tcp;
@@ -25,60 +26,64 @@ class conn : public enable_shared_from_this<conn> {
 
         void handle_request(const boost::system::error_code& ec) {
 		
-			char c;
-            if (!ec) {
-                
-                std::string line;
-                std::istream is(&input_buffer_);
-                std::getline(is, line);
-                int data;
+          char c;
+          if (!ec) {
 
-                if (!line.empty()) {
-                    std::cout << "Received: " << line << "\n";
-                    c = line.at(0);
-                    // restart
-                   	if(c == 114) {
-                   		data = 2*N_inos+1;
-                   		os << data;
-                   		std::cout << os.str() << "\n";
-            			async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));
-                   	}
-                   	// set
-                   	if(c == 115) {
-                   		if (line.at(5) == 0){
-							data = (line.at(3)-1)*2+1;
-						}
-						else if (line.at(5) == 1){
-							data = (line.at(3)-1)*2+2;
-						}
-                   		os << data << "\n";
-            			async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));                   		
-                   	}
-                   	// get
-                   	if(c == 103) {
-                   		resolve_get();
-                   	}
-                   	if(c == 98) {
-                   		
-                   	}
-                   	if(c == 99) {
-                   		
-                   	}                   	         
-                   	if(c == 100) {
-                   		
-                   	}                    
+            std::string line;
+            std::istream is(&input_buffer_);
+            std::getline(is, line);
+            int data = 0;
+            int space = 0;
+
+            if (!line.empty()) {
+              std::cout << "Received: " << line << "\n";
+              c = line.at(0);
+              space = line.find_last_of(" ");
+              // restart
+              if(c == 114) {
+                data = 2*N_inos+1;
+                os << data;
+                async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));
+              }
+              // set
+              if(c == 115) {
+                std::string ino_n = line.substr(2, space-2);
+                if (line.at(space+1) == '0'){  
+                  data = (stoi(ino_n)-1)*2+1;
                 }
-                else {
-                    handle_client();
+                else if (line.at(space+1) == '1'){
+                  data = (stoi(ino_n)-1)*2+2;
                 }
+                os << data << "\n";
+                std::cout << os.str() << "\n";
+                async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));                   		
+              }
+              // get
+              if(c == 103) {
+                //resolve_get(line.at(3), line.at(4));
+              }
+              if(c == 98) {
+
+              }
+              if(c == 99) {
+
+              }                   	         
+              if(c == 100) {
+
+              } 
+              os.clear();                   
             }
             else {
-                std::cout << "Error on receive: " << ec.message() << "\n";
+              handle_client();
             }
+          }
+          else {
+            std::cout << "Error on receive: " << ec.message() << "\n";
+          }
         }
         void ack_command(const boost::system::error_code& ec) {
         	if(!ec) {
-        		async_write(sock_, buffer("ack"), boost::bind(&conn::handle_client, shared_from_this()));	
+        		async_write(sock_, buffer("ack\n"), boost::bind(&conn::handle_client, shared_from_this()));	
         	}
         	else {
         		std::cout << "Error on acknowledge: " << ec.message() << "\n";
