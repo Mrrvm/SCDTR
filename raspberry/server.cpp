@@ -130,20 +130,28 @@ class sniff {
   private:
     boost::asio::posix::stream_descriptor fifo;
     boost::asio::streambuf buffer;
+    std::chrono::steady_clock::time_point begin, end; 
   public:
     sniff(io_service& io, int fifo_d)
     : fifo(io, fifo_d) {
+      begin = std::chrono::steady_clock::now();
       start_sniff();
     }
   private:
     void start_sniff() {
-      std::string line;
-      std::istream is(&buffer);
-      std::getline(is, line);
       boost::asio::async_read_until(fifo, buffer, '\n',
-              boost::bind(&sniff::start_sniff, this));
-      std::cout << line;
-      // por no vector
+              boost::bind(&sniff::assign_vec, this, _1));
+    }
+    void assign_vec(const boost::system::error_code& ec) {
+      if(!ec) {
+        std::string line;
+        std::istream is(&buffer);
+        std::getline(is, line);
+        end = std::chrono::steady_clock::now();
+        auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+        std::cout << timestamp << " : " << line << "\n";
+        start_sniff();
+      }
     }
 };
 

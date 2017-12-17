@@ -8,6 +8,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <string.h>
+#include <signal.h>
 
 #include "pigpio.h"
 
@@ -54,6 +55,8 @@ e.g. ./pig2i2c 9 11 </dev/pigpio0 # monitor external bus
 #define SDA_FALLING 0
 #define SDA_RISING  4
 #define SDA_STEADY  8
+
+int argv1, argv2;
 
 int parse_I2C(int SCL, int SDA)
 {
@@ -134,8 +137,8 @@ int parse_I2C(int SCL, int SDA)
    return ret_byte;
 }
 
-int main(int argc, char * argv[])
-{
+void run_sniffer() {
+
    int gSCL, gSDA, SCL, SDA, xSCL;
    int r;
    uint32_t level, changed, bI2C, bSCL, bSDA;
@@ -150,26 +153,20 @@ int main(int argc, char * argv[])
    fd = open(myfifo, O_WRONLY);
    gpioReport_t report;
 
-   if (argc > 2)
-   {
-      gSCL = atoi(argv[1]);
-      gSDA = atoi(argv[2]);
+   gSCL = argv1;
+   gSDA = argv2;
 
-      bSCL = 1<<gSCL;
-      bSDA = 1<<gSDA;
+   bSCL = 1<<gSCL;
+   bSDA = 1<<gSDA;
 
-      bI2C = bSCL | bSDA;
-   }
-   else
-   {
-      exit(-1);
-   }
+   bI2C = bSCL | bSDA;
 
    /* default to SCL/SDA high */
 
    SCL = 1;
    SDA = 1;
    level = bI2C;
+
 
    while ((r=read(STDIN_FILENO, &report, RS)) == RS)
    {
@@ -185,7 +182,7 @@ int main(int argc, char * argv[])
          if (level & bSDA) SDA = 1; else SDA = 0;
 
          byte = parse_I2C(SCL, SDA);
-         
+         printf("read byte %d\n", byte);
          if(byte != prev_byte) {
             
             if(prev_byte == 97) {
@@ -225,6 +222,23 @@ int main(int argc, char * argv[])
       }
    }
    close(fd);
+}
+
+void handler(int s) {run_sniffer();}
+
+int main(int argc, char *argv[])
+{
+   if (argc > 2) {
+      argv1 = atoi(argv[1]);
+      argv2 = atoi(argv[2]);
+   }
+   else {
+      exit(-1);
+   }
+   signal(SIGPIPE, handler);
+   printf("going to run sniffer\n");
+   run_sniffer();
+   
    return 0;
 }
 
