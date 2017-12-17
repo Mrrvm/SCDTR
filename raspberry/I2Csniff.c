@@ -147,6 +147,7 @@ void run_sniffer() {
    int fd;
    char * myfifo = "myfifo";
    char buff[64];
+   char val[8];
    int counter = 0;
    mkfifo(myfifo, 0666);
 
@@ -182,40 +183,29 @@ void run_sniffer() {
          if (level & bSDA) SDA = 1; else SDA = 0;
 
          byte = parse_I2C(SCL, SDA);
-         printf("read byte %d\n", byte);
          if(byte != prev_byte) {
             
             if(prev_byte == 97) {
-               snprintf(buff, 64, "a %d\n", byte);
-               if(write(fd, buff, strlen(buff)+1) < 0) {
-                  printf("Error\n");
-                  exit(0);
-               }
-               printf("%s", buff);
+               snprintf(val, 8, "a%d", byte);
+               strcat(buff, val);
             }
             else if(prev_byte == 100) {
-               snprintf (buff, 64, "d %d\n", byte);
-               if(write(fd, buff, strlen(buff)+1) < 0) {
-                  printf("Error\n");
-                  exit(0);
-               }
-               printf("%s", buff);
-            }
-            else if(prev_byte == 111) {
-               snprintf (buff, 64, "o %d\n", byte);
-               if(write(fd, buff, strlen(buff)+1) < 0) {
-                  printf("Error\n");
-                  exit(0);
-               }
-               printf("%s\n", buff);
+               snprintf(val, 8, "d%d", byte);
+               strcat(buff, val);
             }
             else if(prev_byte == 108) {
-               snprintf (buff, 64, "l %d\n", byte);
+               snprintf (val, 8, "l%d", byte);
+               strcat(buff, val);    
+            }
+            else if(prev_byte == 111) {
+               snprintf (val, 8, "o%d\n", byte);
+               strcat(buff, val);
                if(write(fd, buff, strlen(buff)+1) < 0) {
                   printf("Error\n");
                   exit(0);
                }
                printf("%s", buff);
+               memset(&buff[0], 0, sizeof(buff));
             }
          }
          prev_byte = byte;     

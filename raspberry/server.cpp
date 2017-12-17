@@ -3,6 +3,8 @@ using namespace boost;
 using namespace boost::asio; 
 using ip::tcp;
 
+std::vector<Data> inoData;
+
 class conn : public enable_shared_from_this<conn> {
     private:  
         tcp::socket sock_;
@@ -131,10 +133,18 @@ class sniff {
     boost::asio::posix::stream_descriptor fifo;
     boost::asio::streambuf buffer;
     std::chrono::steady_clock::time_point begin, end; 
+    int index, index_prev, val_a;
+    long long int timestamp;
+    float val_d, val_l;
+    bool val_o;
+    std::string line;
   public:
     sniff(io_service& io, int fifo_d)
     : fifo(io, fifo_d) {
       begin = std::chrono::steady_clock::now();
+      for(int i=0; i<N_inos; i++) {
+        inoData.push_back(Data(i+1));
+      }
       start_sniff();
     }
   private:
@@ -144,14 +154,35 @@ class sniff {
     }
     void assign_vec(const boost::system::error_code& ec) {
       if(!ec) {
-        std::string line;
         std::istream is(&buffer);
         std::getline(is, line);
         end = std::chrono::steady_clock::now();
-        auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-        std::cout << timestamp << " : " << line << "\n";
-        start_sniff();
+        timestamp = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+        // a
+        if(line.at(0) == 97) {
+
+          index = line.find("l");
+          val_a = stoi(line.substr(1, index-1));
+          index_prev = index;
+
+          index = line.find("d");
+          val_l = (float)stoi(line.substr (index_prev+1, index-index_prev-1));
+          index_prev = index;
+
+          index = line.find("o");
+          val_d = (float)stoi(line.substr (index_prev+1, index-index_prev-1));
+
+          val_o = (bool)stoi(line.substr(index+1, 1));
+
+          inoData[val_a].StoreNewData(timestamp, val_l, val_d, val_o);
+        }
+        // i
+        if(line.at(0) == 105) {
+
+        }
+
       }
+      start_sniff();
     }
 };
 
