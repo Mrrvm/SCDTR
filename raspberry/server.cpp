@@ -33,12 +33,10 @@ class conn : public enable_shared_from_this<conn> {
             std::istream is(&input_buffer_);
             std::getline(is, line);
             int data = 0;
-            int space = 0;
 
             if (!line.empty()) {
               std::cout << "Received: " << line << "\n";
               c = line.at(0);
-              space = line.find_last_of(" ");
               // restart
               if(c == 114) {
                 data = 2*N_inos+1;
@@ -47,6 +45,7 @@ class conn : public enable_shared_from_this<conn> {
               }
               // set
               if(c == 115) {
+                int space = line.find_last_of(" ");
                 std::string ino_n = line.substr(2, space-2);
                 if (line.at(space+1) == '0'){  
                   data = (stoi(ino_n)-1)*2+1;
@@ -60,7 +59,9 @@ class conn : public enable_shared_from_this<conn> {
               }
               // get
               if(c == 103) {
-                //resolve_get(line.at(3), line.at(4));
+                int space = line.find_last_of(" ");
+                std::string ino_n = line.substr(2, space-2);
+                //resolve_get(ino_n, line.at(space+1));
               }
               if(c == 98) {
 
@@ -125,23 +126,50 @@ class tcp_server {
         }
 };
 
+class sniff {
+  private:
+    boost::asio::posix::stream_descriptor fifo;
+    boost::asio::streambuf buffer;
+  public:
+    sniff(io_service& io, int fifo_d)
+    : fifo(io, fifo_d) {
+      start_sniff();
+    }
+  private:
+    void start_sniff() {
+      std::string line;
+      std::istream is(&buffer);
+      std::getline(is, line);
+      boost::asio::async_read_until(fifo, buffer, '\n',
+              boost::bind(&sniff::start_sniff, this));
+      std::cout << line;
+      // por no vector
+    }
+};
+
 int main() {
-    io_service io_main, io_sniff;
+  io_service io_main, io_sniff;
 
-    // Sniffing thread
-    std::thread thread_sniff {[&io_sniff](){
-        io_sniff.run();
-    }};
+  // Sniffing thread
+  std::thread thread_sniff {[&io_sniff](){
+    try {
+      int fifo_d = open("myfifo", O_RDONLY);
+      sniff sniffer(io_sniff, fifo_d);
+      io_sniff.run();
+    }
+    catch (std::exception& e) {
+      std::cout << "Exception sniff thread: " << e.what() << std::endl;
+    }
+  }};
 
-    // Main thread  
-    try	{
+  // Main thread  
+  try	{
     	tcp_server server(io_main);
 	    io_main.run();
 	}
-	catch ( std::exception& e ) {
-	    std::cout << "Exception: " << e.what() << std::endl;
+	catch (std::exception& e) {
+	    std::cout << "Exception main thread: " << e.what() << std::endl;
 	}
-    
-
-    thread_sniff.join(); 
+ 
+  thread_sniff.join(); 
 }
