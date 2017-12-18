@@ -109,7 +109,7 @@ float Data::GetComfortVariance(){
   return V;
 }
 
-std::string GetLastMinuteBuffer(bool variable){ //variable: 0-l  1-d
+std::string Data::GetLastMinuteBuffer(bool variable){ //variable: 0-l  1-d
   int ind=t.size();
   std::ostringstream ss;
   std::string list;

@@ -28,10 +28,10 @@ PID::~PID(){
 //Control loop function
 bool PID::Control(double input){ 
   
-  //if(!reference_change && (input-reference)>20){
-  //  calibrated=0;
-  //  return false;
-  //}
+  if(!reference_change && (input-reference)>20){
+    calibrated=0;
+    return false;
+  }
   
   //check if time interval between last computation
   //and present one is at least one sample interval
