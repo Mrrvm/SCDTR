@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <cstdlib>
+#include <sstream>
 #include "data.h"
 
 #define N_inos 2

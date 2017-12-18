@@ -13,7 +13,7 @@ std::string resolve_get(std::string comm) {
   if(c2 == 108) {
     float val = 0;
     int c3=stoi(index);
-    val = inoData[c3].GetIlluminance();
+    val = inoData[c3-1].GetIlluminance();
     ss << c2 << " " << c3 << val;
     sol=ss.str();
   }
@@ -21,7 +21,7 @@ std::string resolve_get(std::string comm) {
   if(c2 == 100) {
     float val = 0;
     int c3=stoi(index);
-    val = inoData[c3].GetDutyCycle();
+    val = inoData[c3-1].GetDutyCycle();
     ss << c2 << " " << c3 << val;
     sol=ss.str();
   }
@@ -29,7 +29,7 @@ std::string resolve_get(std::string comm) {
   if(c2 == 111) {
     bool val= 0;
     int c3=stoi(index);
-    val = inoData[c3].GetOccupancy();
+    val = inoData[c3-1].GetOccupancy();
     ss << c2 << " " << c3 << val;
     sol=ss.str();
   }
@@ -37,7 +37,7 @@ std::string resolve_get(std::string comm) {
   if(c2 == 76) {
     float val = 0;
     int c3=stoi(index);
-    val = inoData[c3].GetIlluminanceLowerBound();
+    val = inoData[c3-1].GetIlluminanceLowerBound();
     ss << c2 << " " << c3 << val;
     sol=ss.str();
   }
@@ -45,7 +45,7 @@ std::string resolve_get(std::string comm) {
   if(c2 == 79) {
     float val = 0;
     int c3=stoi(index);
-    val = inoData[c3].GetExternalIlluminance();
+    val = inoData[c3-1].GetExternalIlluminance();
     ss << c2 << " " << c3 << val;
     sol=ss.str();
   }
@@ -53,7 +53,7 @@ std::string resolve_get(std::string comm) {
   if(c2 == 114) {
     float val = 0;
     int c3=stoi(index);
-    val = inoData[c3].GetReference();
+    val = inoData[c3-1].GetReference();
     ss << c2 << " " << c3 << val;
     sol=ss.str();
   } 
@@ -64,14 +64,14 @@ std::string resolve_get(std::string comm) {
       float val=0;
       for(int i=0;i<N_ino;++i)
 	val+=inoData[i].GetInstantaneousPower();
-      ss << c2 << " " << c3 << val;
+      ss << c2 << " " << "T " << val;
       sol=ss.str();
     }
     // g p <i>
     else {
       float val = 0;
       int c3=stoi(index);
-      val = inoData[c3].GetInstantaneousPower();
+      val = inoData[c3-1].GetInstantaneousPower();
       ss << c2 << " " << c3 << val;
       sol=ss.str();
     }
@@ -82,14 +82,14 @@ std::string resolve_get(std::string comm) {
       float val=0;
       for(int i=0;i<N_ino;++i)
 	val+=inoData[i].GetAccumulatedEnergy();
-      ss << c2 << " " << c3 << val;
+      ss << c2 << " " << "T " << val;
       sol=ss.str();
     }
     // g e <i>
     else {
       float val = 0;
       int c3=stoi(index);
-      val = inoData[c3].GetAccumulatedEnergy();
+      val = inoData[c3-1].GetAccumulatedEnergy();
       ss << c2 << " " << c3 << val;
       sol=ss.str();
     }
@@ -101,14 +101,14 @@ std::string resolve_get(std::string comm) {
       float val=0;
       for(int i=0;i<N_ino;++i)
 	val+=inoData[i].GetComfortError();
-      ss << c2 << " " << c3 << val;
+      ss << c2 << " " << "T " << val;
       sol=ss.str();
     }
     // g c <i>
     else {
       float val = 0;
       int c3=stoi(index);
-      val = inoData[c3].GetComfortError();
+      val = inoData[c3-1].GetComfortError();
       ss << c2 << " " << c3 << val;
       sol=ss.str();
     }
@@ -120,14 +120,14 @@ std::string resolve_get(std::string comm) {
       float val=0;
       for(int i=0;i<N_ino;++i)
 	val+=inoData[i].GetComfortVariance();
-      ss << c2 << " " << c3 << val;
+      ss << c2 << " " << "T " << val;
       sol=ss.str();
     }
     // g v <i>
     else {
       float val = 0;
       int c3=stoi(index);
-      val = inoData[c3].GetComfortVariance();
+      val = inoData[c3-1].GetComfortVariance();
       ss << c2 << " " << c3 << val;
       sol=ss.str();
     }
