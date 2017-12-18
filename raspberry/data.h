@@ -28,7 +28,6 @@ private:
   //special data
   float r;
   float external_illuminance;
-  std::vector<float> k;
 
   
 public:
