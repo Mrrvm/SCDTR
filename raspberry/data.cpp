@@ -26,7 +26,7 @@ void Data::StoreNewData(int t_, float l_, float d_, bool o_){
 
 void Data::ComputeEnergy(){
   std::vector<int>::iterator it=t.end();
-  E.push_back(d.back()*( *(it-1)-*(it-2) ) );
+  E.push_back((d.back()/255)*(*(it-1)-*(it-2)));
 }
 
 void Data::SetGains(std::vector<float> k_){
@@ -109,14 +109,16 @@ float Data::GetComfortVariance(){
 std::string Data::GetLastMinuteBuffer(bool variable){ //variable: 0-l  1-d
   int ind=t.size();
   std::ostringstream ss;
-  std::string list;
+  if(t.back()-t.front()<60) {
+    ss << "-";
+    return ss.str();
+  }
   if(!variable){ ss << l[ind];}
   else {ss << d[ind];}
   for(ind = t.size()-1 ; (t.back()-t[ind])<60; --ind){
       if(!variable) {ss << "," <<  l[ind];}
-      else {ss << "," << d[ind];}
+      else {ss << "," << d[ind]/255*100;}
     }
-  list=ss.str();
-  return list;
+  return ss.str();
 }
 

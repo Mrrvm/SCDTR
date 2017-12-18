@@ -150,11 +150,11 @@ std::string resolve_buffer(std::string comm){
   int c3 = std::stoi(index);
   bool variable = 0;
   
-  if(c2==100) variable=0;
-  else variable=1;
+  if(c2==100) variable=1;
+  else variable=0;
 
   sol2=inoData[c3-1].GetLastMinuteBuffer(variable);
-  ss << "b" << " " << sol2;
+  ss << "b" << " " << sol2 << "\n";
   sol1=ss.str();
   return sol1;
 }
