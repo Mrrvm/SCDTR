@@ -21,7 +21,7 @@ class conn : public enable_shared_from_this<conn> {
         
         void handle_client()   {
             // maybe use a deadline here????
-
+          os.str(std::string());
     		  boost::asio::async_read_until(sock_, input_buffer_, '\n',
             	boost::bind(&conn::handle_request, shared_from_this(), _1));
             
@@ -40,7 +40,7 @@ class conn : public enable_shared_from_this<conn> {
             if (!line.empty()) {
               std::cout << "Received: " << line << "\n";
               c1 = line.at(0);
-              std::cout << "c1 " << c1 << "\n";
+
               // restart
               if(c1 == 114) {
                 data = 2*N_inos+1;
@@ -51,8 +51,6 @@ class conn : public enable_shared_from_this<conn> {
               if(c1 == 115) {
                 int space = line.find_last_of(" ");
                 std::string c2 = line.substr(2, space-2);
-                std::cout << "c2 " << c2 << "\n";
-                std::cout << "c3 " << line.at(space+1) << "\n";
                 // turn on/off consensus
                 if(!c2.compare("c")) {
                   if (line.at(space+1) == '0'){  
@@ -63,8 +61,8 @@ class conn : public enable_shared_from_this<conn> {
                   }
                 }
                 // spin window
-                if(!c2.compare("w")) {
-                  if (line.at(space+1) == '0'){  
+                else if(!c2.compare("w")) {
+                  if (line.at(space+1) == 0){  
                     data = 2*N_inos+4;
                   }
                   else if (line.at(space+1) == 90){
@@ -83,19 +81,19 @@ class conn : public enable_shared_from_this<conn> {
                   }
                 }
                 os << data;
-                std::cout << "os1 " << os.str() << "\n";
                 async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));                   		
               }
               // get
               if(c1 == 103) {
                 std::string comm = line.substr(2);
-                resolve_get(comm);
+                std::string ret = resolve_get(comm);
+                async_write(sock_, buffer(ret), boost::bind(&conn::handle_client, shared_from_this()));  
               }
               //get last minute buffer
               if(c1 == 98) {
                 std::string comm=line.substr(2);
-                resolve_buffer(comm);
-                
+                std::string ret = resolve_buffer(comm);
+                async_write(sock_, buffer(ret), boost::bind(&conn::handle_client, shared_from_this()));
               }
               if(c1 == 99) {
                 /*stream_on = 1;
@@ -120,7 +118,6 @@ class conn : public enable_shared_from_this<conn> {
         }
         void ack_command(const boost::system::error_code& ec) {
         	if(!ec) {
-            os.str(std::string());
         		async_write(sock_, buffer("ack\n"), boost::bind(&conn::handle_client, shared_from_this()));	
         	}
         	else {
