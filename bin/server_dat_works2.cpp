@@ -3,9 +3,6 @@ using namespace boost;
 using namespace boost::asio; 
 using ip::tcp;
 
-std::vector<Data> inoData;
-//bool stream_on;
-
 class conn : public enable_shared_from_this<conn> {
     private:  
         tcp::socket sock_;
@@ -15,14 +12,14 @@ class conn : public enable_shared_from_this<conn> {
 
         conn(io_service& io) 
         :  sock_(io), sp(io)  {
-        	 sp.open("/dev/ttyACM0");    
-           sp.set_option(serial_port_base::baud_rate(115200));
+        	sp.open("/dev/ttyACM0");    
+            sp.set_option(serial_port_base::baud_rate(115200));
         }
         
         void handle_client()   {
             // maybe use a deadline here????
 
-    		  boost::asio::async_read_until(sock_, input_buffer_, '\n',
+    		boost::asio::async_read_until(sock_, input_buffer_, '\n',
             	boost::bind(&conn::handle_request, shared_from_this(), _1));
             
         }
@@ -62,19 +59,15 @@ class conn : public enable_shared_from_this<conn> {
               }
               // get
               if(c == 103) {
-
+                int space = line.find_last_of(" ");
+                std::string ino_n = line.substr(2, space-2);
+                //resolve_get(ino_n, line.at(space+1));
               }
               if(c == 98) {
 
               }
               if(c == 99) {
-                /*stream_on = 1;
-                if (line.at(2) == 108){
 
-                }
-                if (line.at(2) == 100){
-                  
-                }*/
               }                   	         
               if(c == 100) {
 
@@ -138,18 +131,10 @@ class sniff {
     boost::asio::posix::stream_descriptor fifo;
     boost::asio::streambuf buffer;
     std::chrono::steady_clock::time_point begin, end; 
-    int index, index_prev, val_a;
-    int timestamp;
-    float val_d, val_l;
-    bool val_o;
-    std::string line;
   public:
     sniff(io_service& io, int fifo_d)
     : fifo(io, fifo_d) {
       begin = std::chrono::steady_clock::now();
-      for(int i=0; i<N_inos; i++) {
-        inoData.push_back(Data(i+1));
-      }
       start_sniff();
     }
   private:
@@ -159,56 +144,19 @@ class sniff {
     }
     void assign_vec(const boost::system::error_code& ec) {
       if(!ec) {
+        std::string line;
         std::istream is(&buffer);
         std::getline(is, line);
         end = std::chrono::steady_clock::now();
-        timestamp = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-
-        if(line.at(1) == 97) {
-
-          index = line.find("l");
-          if(index != std::string::npos) {
-            val_a = std::stoi(line.substr(2, index-1));
-            index_prev = index;
-          }
-
-          index = line.find("d");
-          if(index != std::string::npos) {
-            val_l = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
-            index_prev = index;
-          }
-
-          index = line.find("o");
-          if(index != std::string::npos) {
-            val_d = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
-            val_o = (bool)std::stoi(line.substr(index+1, 1));
-            //std::cout << "arduino " << val_a << " lum " << val_l << " duty " << val_d << " occ " << val_o << "\n";
-            inoData[val_a-1].StoreNewData(timestamp, val_l, val_d, val_o);
-          }
-        }
-        // 
-        if(line.at(1) == 105) {
-
-        }
+        auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+        std::cout << timestamp << " : " << line << "\n";
+        start_sniff();
       }
-      start_sniff();
     }
 };
 
-/*
-class stream {
-  private:
-    boost::asio::streambuf buffer;
-    std::chrono::steady_clock::time_point begin, end; 
-  public:
-    stream (io_service& io, int fifo_d){
-    
-
-
-    }*/
-
 int main() {
-  io_service io_main, io_sniff, io_stream;
+  io_service io_main, io_sniff;
 
   // Sniffing thread
   std::thread thread_sniff {[&io_sniff](){
@@ -222,18 +170,6 @@ int main() {
     }
   }};
 
-  // streaming thread
-
- /* śtd::thread_stream {[&io_stream](){
-    try{
-      stream streamer(io_stream,);
-      io_stream.run();
-    }
-    catch (std::exception& e) {
-      std::cout << "Exception streaming: " << e.what() << std::endl;
-    }
-  }}
-*/
   // Main thread  
   try	{
     	tcp_server server(io_main);
