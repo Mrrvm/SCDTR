@@ -144,7 +144,7 @@ class sniff {
     std::chrono::steady_clock::time_point begin, end; 
     int index, index_prev, val_a;
     int timestamp;
-    float val_d, val_l;
+    float val_d, val_l, val_ref, val_ie;
     bool val_o;
     std::string line;
   public:
@@ -190,11 +190,26 @@ class sniff {
             inoData[val_a-1].StoreNewData(timestamp, val_l, val_d, val_o);
           }
         }
-        // 
-        if(line.at(1) == 105) {
+        // informçao do consensus/calibracao
+	else  if(line.at(1) == 105) {
+	  index = line.find("t");
+          if(index != std::string::npos) {
+            val_a = std::stoi(line.substr(3, index-1));
+            index_prev = index;
+          }
 
-        }
-      }
+	  index = line.find("x");
+          if(index != std::string::npos) {
+            val_ref = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
+            index_prev = index;
+          }
+
+	  val_ie = (bool)std::stoi(line.substr(index+1, 1));
+
+	  inoData[val_a-1].SetExternalIluminance(val_ie);
+	  inoData[val_a-1].SetReference(val_ref);
+	  
+	}
       start_sniff();
     }
 };

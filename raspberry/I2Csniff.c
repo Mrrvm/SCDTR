@@ -207,6 +207,21 @@ void run_sniffer() {
                printf("%s", buff);
                memset(&buff[0], 0, sizeof(buff));
             }
+	    else if(prev_byte == 105){
+	      snprintf(val,8, "i",byte);
+	      strcat(buff,val);
+	    }
+	    else if(prev_byte == 116){
+	      snprintf(val, 8, "l",byte);
+	      strcat(buff,val);
+	    }
+	     else if(prev_byte == 120) {
+               snprintf (val, 8, "x%d\n", byte);
+               strcat(buff, val);
+               if(write(fd, buff, strlen(buff)+1) < 0) {
+                  printf("Error\n");
+                  exit(0);
+               }
          }
          prev_byte = byte;     
       }
