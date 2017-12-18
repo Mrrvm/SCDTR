@@ -152,7 +152,9 @@ void receiveEvent(int howMany)	{
       Serial.print("vai ligar o motor ");
       Serial.println(h);
       if(window!=h){
-          Servo1.write(h); 
+          //Servo1.attach(servoPin);
+          //Servo1.write(h); 
+          //Servo1.detach();
           calibrated=0;
           window=h;
         }
@@ -164,7 +166,6 @@ void receiveEvent(int howMany)	{
 
 void setup() {
   Serial.begin(115200);
-  Servo1.attach(servoPin);
   myPID.Reset();
   myPID.SetSamplingTime(sample);
   myPID.SetParameters(Kp,Ki,Kd,pole_value);
@@ -272,7 +273,7 @@ void loop() {
         Wire.endTransmission();
         Serial.println("vai ligar o motor 0");
         if(window!=0){
-          Servo1.write(0); 
+          //Servo1.write(0); 
           calibrated=0;
           window=0;
         }
@@ -284,7 +285,7 @@ void loop() {
         Wire.endTransmission();
         Serial.println("vai ligar o motor 90");
         if(window!=90){
-          Servo1.write(90); 
+          //Servo1.write(90); 
           calibrated=0;
           window=90;
         }
@@ -296,7 +297,7 @@ void loop() {
         Wire.endTransmission();
         Serial.println("vai ligar o motor 180");
         if(window!=180){
-          Servo1.write(180); 
+          //Servo1.write(180); 
           calibrated=0;
           window=180;
         }

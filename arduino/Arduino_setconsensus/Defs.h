@@ -31,7 +31,7 @@ const double B[2]={4.69897,4.69897}; //{4.69897} for equal gains
 const int analogInPin = A0;
 const int analogOutPin = 9;
 
-const int servoPin = 3;
+const int servoPin = 10;
 
 double lux_converter(double volt);
 double voltage_converter(double lux);
