@@ -61,12 +61,14 @@ private:
 	}
 	// get
 	if(c == 103) {
-	  int space = line.find_last_of(" ");
-	  std::string comm = line.substr(2, space-2);
+	  std::string comm = line.substr(2);
 	  resolve_get(comm);
 	}
+	//get last minute buffer
 	if(c == 98) {
-
+	  std::string comm=line.substr(2);
+	  resolve_buffer(comm);
+	  
 	}
 	if(c == 99) {
 
