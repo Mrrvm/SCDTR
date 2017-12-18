@@ -45,7 +45,7 @@ std::string resolve_get(std::string comm) {
   if(c2 == 79) {
     float val = 0;
     int c3=std::stoi(index);
-    val = inoData[c3-1].GetExternalIlluminance();
+    val = inoData[c3-1].GetExternalIlluminance(inoData);
     ss << c2 << " " << c3 << val;
     sol=ss.str();
   }
@@ -62,7 +62,7 @@ std::string resolve_get(std::string comm) {
     if(index.at(0) == 84) {
       // POR AQUI CENAS
       float val=0;
-      for(int i=0;i<N_ino;++i)
+      for(int i=0;i<N_inos;++i)
 	val+=inoData[i].GetInstantaneousPower();
       ss << c2 << " " << "T " << val;
       sol=ss.str();
@@ -80,7 +80,7 @@ std::string resolve_get(std::string comm) {
     // g e T
     if(index.at(0) == 84) {
       float val=0;
-      for(int i=0;i<N_ino;++i)
+      for(int i=0;i<N_inos;++i)
 	val+=inoData[i].GetAccumulatedEnergy();
       ss << c2 << " " << "T " << val;
       sol=ss.str();
@@ -99,7 +99,7 @@ std::string resolve_get(std::string comm) {
     if(index.at(0) == 84) {
       // POR CENAS AQUI
       float val=0;
-      for(int i=0;i<N_ino;++i)
+      for(int i=0;i<N_inos;++i)
 	val+=inoData[i].GetComfortError();
       ss << c2 << " " << "T " << val;
       sol=ss.str();
@@ -118,7 +118,7 @@ std::string resolve_get(std::string comm) {
     if(index.at(0) == 84) {
       // POR CENAS AQUI
       float val=0;
-      for(int i=0;i<N_ino;++i)
+      for(int i=0;i<N_inos;++i)
 	val+=inoData[i].GetComfortVariance();
       ss << c2 << " " << "T " << val;
       sol=ss.str();
@@ -145,7 +145,7 @@ std::string resolve_buffer(std::string comm){
   int c3= std::stoi(index);
   bool variable=0;
   if(c2==100) variable=0;
-  else variable 1;
+  else variable=1;
   sol2=inoData[c3-1].GetLastMinuteBuffer(variable);
   ss << "b " << sol2;
   sol1=ss.str();

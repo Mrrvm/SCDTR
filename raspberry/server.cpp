@@ -1,4 +1,4 @@
-#include "defs.h"
+#include "resolve_get.h"
 using namespace boost; 
 using namespace boost::asio; 
 using ip::tcp;
@@ -29,7 +29,7 @@ class conn : public enable_shared_from_this<conn> {
 
         void handle_request(const boost::system::error_code& ec) {
 		
-          char c;
+          char c1;
           if (!ec) {
 
             std::string line;
@@ -39,39 +39,65 @@ class conn : public enable_shared_from_this<conn> {
 
             if (!line.empty()) {
               std::cout << "Received: " << line << "\n";
-              c = line.at(0);
+              c1 = line.at(0);
+              std::cout << "c1 " << c1 << "\n";
               // restart
-              if(c == 114) {
+              if(c1 == 114) {
                 data = 2*N_inos+1;
                 os << data;
                 async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));
               }
               // set
-              if(c == 115) {
+              if(c1 == 115) {
                 int space = line.find_last_of(" ");
-                std::string ino_n = line.substr(2, space-2);
-                if (line.at(space+1) == '0'){  
-                  data = (stoi(ino_n)-1)*2+1;
+                std::string c2 = line.substr(2, space-2);
+                std::cout << "c2 " << c2 << "\n";
+                std::cout << "c3 " << line.at(space+1) << "\n";
+                // turn on/off consensus
+                if(!c2.compare("c")) {
+                  if (line.at(space+1) == '0'){  
+                    data = 2*N_inos+2;
+                  }
+                  else if (line.at(space+1) == '1'){
+                    data = 2*N_inos+3;
+                  }
                 }
-                else if (line.at(space+1) == '1'){
-                  data = (stoi(ino_n)-1)*2+2;
+                // spin window
+                if(!c2.compare("w")) {
+                  if (line.at(space+1) == '0'){  
+                    data = 2*N_inos+4;
+                  }
+                  else if (line.at(space+1) == 90){
+                    data = 2*N_inos+5;
+                  }
+                  else if(line.at(space+1) == 180) {
+                    data = 2*N_inos+6;
+                  }
                 }
-                os << data << "\n";
-                std::cout << os.str() << "\n";
+                else {
+                  if (line.at(space+1) == '0'){  
+                    data = (stoi(c2)-1)*2+1;
+                  }
+                  else if (line.at(space+1) == '1'){
+                    data = (stoi(c2)-1)*2+2;
+                  }
+                }
+                os << data;
+                std::cout << "os1 " << os.str() << "\n";
                 async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));                   		
               }
               // get
-              if(c == 103) {
+              if(c1 == 103) {
                 std::string comm = line.substr(2);
                 resolve_get(comm);
               }
               //get last minute buffer
-              if(c == 98) {
+              if(c1 == 98) {
                 std::string comm=line.substr(2);
                 resolve_buffer(comm);
                 
               }
-              if(c == 99) {
+              if(c1 == 99) {
                 /*stream_on = 1;
                 if (line.at(2) == 108){
 
@@ -80,10 +106,9 @@ class conn : public enable_shared_from_this<conn> {
                   
                 }*/
               }                   	         
-              if(c == 100) {
+              if(c1 == 100) {
 
-              } 
-              os.clear();                   
+              }                   
             }
             else {
               handle_client();
@@ -95,6 +120,7 @@ class conn : public enable_shared_from_this<conn> {
         }
         void ack_command(const boost::system::error_code& ec) {
         	if(!ec) {
+            os.str(std::string());
         		async_write(sock_, buffer("ack\n"), boost::bind(&conn::handle_client, shared_from_this()));	
         	}
         	else {
@@ -186,8 +212,8 @@ class sniff {
           if(index != std::string::npos) {
             val_d = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
             val_o = (bool)std::stoi(line.substr(index+1, 1));
-            //std::cout << "arduino " << val_a << " lum " << val_l << " duty " << val_d << " occ " << val_o << "\n";
             inoData[val_a-1].StoreNewData(timestamp, val_l, val_d, val_o);
+            //std::cout << inoData[val_a-1].GetIlluminance() << "\n";
           }
         }
         // 
