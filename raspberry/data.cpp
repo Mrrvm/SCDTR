@@ -33,6 +33,9 @@ void Data::SetGains(std::vector<float> k_){
   k=k_;
 }
 
+void Data::SetExternalIluminance(float ex_ilu){
+external_illuminance = ex_ilu;
+}
 void Data::SetReference(float r_){
   r=r_;
 }
