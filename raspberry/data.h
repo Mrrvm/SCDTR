@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include "defs.h"
 
 class Data{
 
@@ -12,6 +13,8 @@ private:
   //id
   int id;
   
+  // last restart index
+  int last_r;
   
   //data
   std::vector <int> t;
@@ -21,7 +24,6 @@ private:
 
   //calculations
   std::vector <float> E;
-  float accE; 
 
   //special data
   float r;
@@ -60,6 +62,9 @@ public:
   float GetComfortError();
 
   float GetComfortVariance();
+  
+  std::string GetLastMinuteBuffer(bool);
+
   
 };
 

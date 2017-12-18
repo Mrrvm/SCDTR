@@ -62,10 +62,14 @@ class conn : public enable_shared_from_this<conn> {
               }
               // get
               if(c == 103) {
-
+                std::string comm = line.substr(2);
+                resolve_get(comm);
               }
+              //get last minute buffer
               if(c == 98) {
-
+                std::string comm=line.substr(2);
+                resolve_buffer(comm);
+                
               }
               if(c == 99) {
                 /*stream_on = 1;
