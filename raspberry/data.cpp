@@ -38,7 +38,7 @@ void Data::SetReference(float r_){
 }
 
 int Data::GetTimestamp() {
-  return t.back();
+  return t.back()-t[last_r];
 }
 
 float Data::GetIlluminance(){
