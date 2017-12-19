@@ -45,6 +45,9 @@ class conn : public enable_shared_from_this<conn> {
               if(c1 == 114) {
                 data = 2*N_inos+1;
                 os << data;
+                for(int i=0;i<N_inos;++i){
+                  inoData[i].SetRestartTime();
+                }
                 async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));
               }
               // set
@@ -191,7 +194,8 @@ class sniff {
         end = std::chrono::steady_clock::now();
         timestamp = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
 
-        if(line.at(1) == 97) {
+        // a
+        if(line.at(1) == 97 && line.at(2) != 0) {
 
           index = line.find("l");
           if(index != std::string::npos) {
@@ -214,40 +218,27 @@ class sniff {
           }
         }
         // informçao do consensus/calibracao
-	else  if(line.at(1) == 105) {
-	  index = line.find("t");
+      	else if(line.at(1) == 105 && line.at(2) != 0) {
+      	  index = line.find("t");
           if(index != std::string::npos) {
-            val_a = std::stoi(line.substr(3, index-1));
+            val_a = std::stoi(line.substr(2, index-1)) ;
             index_prev = index;
           }
 
-	  index = line.find("x");
+      	  index = line.find("x");
           if(index != std::string::npos) {
             val_ref = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
-            index_prev = index;
-          }
-
-	  val_ie = (bool)std::stoi(line.substr(index+1, 1));
-
-	  inoData[val_a-1].SetExternalIluminance(val_ie);
-	  inoData[val_a-1].SetReference(val_ref);
-	  
-	}
+      	    val_ie = (float)std::stoi(line.substr(index+1));
+            std::cout << val_ref << " " << val_ie << std::endl;
+        	  inoData[val_a-1].SetExternalIlluminance(val_ie);
+        	  inoData[val_a-1].SetReference(val_ref);
+          }  	  
+      	}
+      }
       start_sniff();
     }
 };
 
-/*
-class stream {
-  private:
-    boost::asio::streambuf buffer;
-    std::chrono::steady_clock::time_point begin, end; 
-  public:
-    stream (io_service& io, int fifo_d){
-    
-
-
-    }*/
 
 int main() {
   io_service io_main, io_sniff, io_stream;
@@ -264,18 +255,6 @@ int main() {
     }
   }};
 
-  // streaming thread
-
- /* śtd::thread_stream {[&io_stream](){
-    try{
-      stream streamer(io_stream,);
-      io_stream.run();
-    }
-    catch (std::exception& e) {
-      std::cout << "Exception streaming: " << e.what() << std::endl;
-    }
-  }}
-*/
   // Main thread  
   try	{
     	tcp_server server(io_main);

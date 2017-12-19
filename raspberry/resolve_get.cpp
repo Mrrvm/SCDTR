@@ -37,7 +37,7 @@ std::string resolve_get(std::string comm) {
   // g L <i>
   if(c2 == 76) {
     float val = 0;
-    int c3=std::stoi(index);
+    int c3 = std::stoi(index);
     val = inoData[c3-1].GetIlluminanceLowerBound();
     ss << c2 << " " << c3 << " " << val << "\n";
     sol=ss.str();
@@ -45,8 +45,8 @@ std::string resolve_get(std::string comm) {
   // g O <i>
   if(c2 == 79) {
     float val = 0;
-    int c3=std::stoi(index);
-    val = inoData[c3-1].GetExternalIlluminance(inoData);
+    int c3 = std::stoi(index);
+    val = inoData[c3-1].GetExternalIlluminance();
     ss << c2 << " " << c3 << " " << val << "\n";
     sol=ss.str();
   }

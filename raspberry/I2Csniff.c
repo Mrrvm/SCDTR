@@ -12,6 +12,8 @@
 
 #include "pigpio.h"
 
+#define N_inos 2
+
 /*
 This software reads pigpio notification reports monitoring the I2C signals.
 
@@ -184,7 +186,7 @@ void run_sniffer() {
 
          byte = parse_I2C(SCL, SDA);
          if(byte != prev_byte) {
-            
+            printf("%d\n", byte);
             if(prev_byte == 97) {
                snprintf(val, 8, "a%d", byte);
                strcat(buff, val);
@@ -207,23 +209,28 @@ void run_sniffer() {
                printf("%s", buff);
                memset(&buff[0], 0, sizeof(buff));
             }
-	    else if(prev_byte == 105){
-	      snprintf(val,8, "i",byte);
-	      strcat(buff,val);
-	    }
-	    else if(prev_byte == 116){
-	      snprintf(val, 8, "l",byte);
-	      strcat(buff,val);
-	    }
-	     else if(prev_byte == 120) {
+            else if(prev_byte == 105){
+               memset(&buff[0], 0, sizeof(buff));
+               snprintf(val, 8, "i%d", byte);
+               strcat(buff, val);
+            }
+            else if(prev_byte == 116){
+               snprintf(val, 8, "t%d", byte);
+               strcat(buff, val);
+            }
+            else if(prev_byte == 120) {
                snprintf (val, 8, "x%d\n", byte);
                strcat(buff, val);
                if(write(fd, buff, strlen(buff)+1) < 0) {
                   printf("Error\n");
                   exit(0);
                }
+               printf("%s", buff);
+               memset(&buff[0], 0, sizeof(buff));
+            }
+            
+            prev_byte = byte;     
          }
-         prev_byte = byte;     
       }
    }
    close(fd);

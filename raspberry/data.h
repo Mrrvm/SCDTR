@@ -36,9 +36,11 @@ public:
   void StoreNewData(int,float, float, bool);
   void ComputeEnergy();
 
-  void SetGains(std::vector<float>);
+  void SetReference(float);
 
-  void SetReference(float r_);
+  void SetExternalIlluminance(float);
+
+  void SetRestartTime();
 
   int GetTimestamp();
 		  
@@ -52,7 +54,7 @@ public:
 
   float GetIlluminanceLowerBound();
 
-  float GetExternalIlluminance(std::vector<Data>);
+  float GetExternalIlluminance();
 
   float GetReference();
 
@@ -63,6 +65,7 @@ public:
   float GetComfortVariance();
   
   std::string GetLastMinuteBuffer(bool);
+
 
   
 };

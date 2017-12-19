@@ -29,15 +29,17 @@ void Data::ComputeEnergy(){
   E.push_back((d.back()/255)*(*(it-1)-*(it-2)));
 }
 
-void Data::SetGains(std::vector<float> k_){
-  k=k_;
+
+void Data::SetExternalIlluminance(float ex_ilu){
+    external_illuminance = ex_ilu;
 }
 
-void Data::SetExternalIluminance(float ex_ilu){
-external_illuminance = ex_ilu;
-}
 void Data::SetReference(float r_){
-  r=r_;
+    r=r_;
+}
+
+void Data::SetRestartTime(){
+    last_r=t.size();
 }
 
 int Data::GetTimestamp() {
@@ -69,13 +71,8 @@ float Data::GetIlluminanceLowerBound(){
     else return 50;
 }
 
-float Data::GetExternalIlluminance(std::vector<Data> arduino){
-  float emitted=0;
-  int n=k.size();
-  for(int i=0;i<n;++i)
-    emitted+=k[i]*arduino[i].GetDutyCycle();
-  if(l.back()>emitted) return l.back()-emitted;
-  else return 0;
+float Data::GetExternalIlluminance(){
+    return external_illuminance;
 }
 
 float Data::GetReference(){
