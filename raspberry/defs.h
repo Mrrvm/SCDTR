@@ -6,6 +6,7 @@
 #include <boost/shared_ptr.hpp>
 #include <condition_variable>
 #include <mutex>
+#include <boost/asio/steady_timer.hpp>
 #include <string>
 #include <sstream>
 #include <vector>

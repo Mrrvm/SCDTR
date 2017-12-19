@@ -3,32 +3,62 @@ using namespace boost;
 using namespace boost::asio; 
 using ip::tcp;
 
+//string buffer
+bool SND;
+
 std::vector<Data> inoData;
-//bool stream_on;
 
 class conn : public enable_shared_from_this<conn> {
     private:  
         tcp::socket sock_;
+        boost::asio::steady_timer tim;
         boost::asio::streambuf input_buffer_;
         serial_port sp;
         std::ostringstream os;
+        // d - 0, l - 1
+        bool stream_on[N_inos][2];
 
         conn(io_service& io) 
-        :  sock_(io), sp(io)  {
+        :  sock_(io), sp(io), tim(io)  {
         	 sp.open("/dev/ttyACM0");    
            sp.set_option(serial_port_base::baud_rate(115200));
+           for (int i = 0; i < N_inos; ++i) {
+             stream_on[i][0] = 0;
+             stream_on[i][1] = 0;
+           }
+           SND = 0;
         }
         
         void handle_client()   {
-            // maybe use a deadline here????
+
+          tim.expires_from_now(std::chrono::milliseconds(5000));
+          tim.async_wait(boost::bind(&conn::handle_stream, shared_from_this()));   
+          
           os.str(std::string());
     		  boost::asio::async_read_until(sock_, input_buffer_, '\n',
             	boost::bind(&conn::handle_request, shared_from_this(), _1));
-            
+          
+        }
+
+        void handle_stream() {
+          if(SND == 1) {
+            for(int i=0; i<N_inos; i++){
+              if(stream_on[i][0] == 1){
+                os << "c d" << i << " " << inoData[i].GetDutyCycle() << " " << inoData[i].GetTimestamp() << "\n"; 
+                async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
+                SND = 0;
+              }
+              else if(stream_on[i][1] == 1){
+                os << "c l" << i << " " << inoData[i].GetIlluminance() << " " << inoData[i].GetTimestamp() << "\n"; 
+                async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
+                SND = 0;
+              }
+            }
+          }
         }
 
         void handle_request(const boost::system::error_code& ec) {
-		
+		      
           char c1;
           if (!ec) {
 
@@ -92,27 +122,37 @@ class conn : public enable_shared_from_this<conn> {
                 std::string ret = resolve_get(comm);
                 async_write(sock_, buffer(ret), boost::bind(&conn::handle_client, shared_from_this()));  
               }
-              //get last minute buffer
+              // get last minute buffer
               if(c1 == 98) {
-                std::string comm=line.substr(2);
+                std::string comm = line.substr(2);
                 std::string ret = resolve_buffer(comm);
                 async_write(sock_, buffer(ret), boost::bind(&conn::handle_client, shared_from_this()));
               }
+              // stream on
               if(c1 == 99) {
-                /*stream_on = 1;
-                if (line.at(2) == 108){
-
+                char var = line.at(2);
+                int ino = stoi(line.substr(4));
+                if(var == 100) {
+                  stream_on[ino-1][0] = 1;
                 }
-                if (line.at(2) == 100){
-                  
-                }*/
-              }                   	         
+                else {
+                  stream_on[ino-1][1] = 1;
+                } 
+              }         
+              // stream off          	         
               if(c1 == 100) {
-
-              }                   
+                char var = line.at(2);
+                int ino = stoi(line.substr(4));
+                if(var == 100) {
+                  stream_on[ino-1][0] = 0;
+                }
+                else {
+                  stream_on[ino-1][1] = 0;
+                }
+              }
             }
             else {
-              handle_client();
+                handle_client();
             }
           }
           else {
@@ -161,6 +201,8 @@ class tcp_server {
             new_conn->start();
             start_accept();
         }
+
+
 };
 
 class sniff {
@@ -177,8 +219,8 @@ class sniff {
     sniff(io_service& io, int fifo_d)
     : fifo(io, fifo_d) {
       begin = std::chrono::steady_clock::now();
-      for(int i=0; i<N_inos; i++) {
-        inoData.push_back(Data(i+1));
+      for(int j=0; j<N_inos; j++) {
+        inoData.push_back(Data(j+1));
       }
       start_sniff();
     }
@@ -214,7 +256,7 @@ class sniff {
             val_d = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
             val_o = (bool)std::stoi(line.substr(index+1, 1));
             inoData[val_a-1].StoreNewData(timestamp, val_l, val_d, val_o);
-            //std::cout << inoData[val_a-1].GetIlluminance() << "\n";
+            SND = 1;
           }
         }
         // informçao do consensus/calibracao
@@ -229,7 +271,7 @@ class sniff {
           if(index != std::string::npos) {
             val_ref = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
       	    val_ie = (float)std::stoi(line.substr(index+1));
-            std::cout << val_ref << " " << val_ie << std::endl;
+            std::cout << "Setup done\n";
         	  inoData[val_a-1].SetExternalIlluminance(val_ie);
         	  inoData[val_a-1].SetReference(val_ref);
           }  	  
