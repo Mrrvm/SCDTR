@@ -9,4 +9,6 @@ You should have a similar setup:
 
 where 5V devices are the arduinos, SDA_2 is A4 pin, SCL_2 is A5 pin (for arduino UNO), and R_p are pull up resistor.
 
+**You must connect the grounds!**
+
 The resistor values can range from 1k8 (1800 ohms) to 47k (47000 ohms).
