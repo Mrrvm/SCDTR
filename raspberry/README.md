@@ -1,5 +1,7 @@
 # Raspberry Pi hosted C++ server
 
+You should read [main](https://github.com/Mrrvm/SCDTR/tree/master/raspberry/main) README before anything.
+
 To run the server, simply upload the `main/` content to a raspberry pi and run the command
 
 ```
