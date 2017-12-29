@@ -18,7 +18,7 @@ The optimization of a lighting system is a currently studied problem, you can ch
 
 As a lighting system, we are using 2 luminaires. Each luminaire is composed by a LED, a fotoresistor, an arduino (used as an agent of the network) and other necessary electronics like resistors and capacitors.
 
-This agents are connected by I2C, so they can communicate the results of the consensus with each other. 
+This agents are connected by I2C protocol used as multi-master, so they can communicate the results of the consensus with each other. 
 This communication is sniffed by a Raspberry Pi, that hosts a C++ server to get statistics out of the system and send them to requesting clients. 
 
 The client can also interact with the system by restaring it or setting occupancies, this is done via serial (USART converted from/to USB) connected between the raspberry Pi and one of the agents (one of the arduinos).
