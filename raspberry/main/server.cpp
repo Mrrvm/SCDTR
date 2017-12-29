@@ -3,9 +3,8 @@ using namespace boost;
 using namespace boost::asio; 
 using ip::tcp;
 
-//string buffer
-bool SND;
-
+std::mutex mtx;
+// shared vector between threads
 std::vector<Data> inoData;
 
 class conn : public enable_shared_from_this<conn> {
@@ -26,7 +25,6 @@ class conn : public enable_shared_from_this<conn> {
              stream_on[i][0] = 0;
              stream_on[i][1] = 0;
            }
-           SND = 0;
         }
         
         void handle_client()   {
@@ -41,18 +39,18 @@ class conn : public enable_shared_from_this<conn> {
         }
 
         void handle_stream() {
-          if(SND == 1) {
-            for(int i=0; i<N_inos; i++){
-              if(stream_on[i][0] == 1){
-                os << "c d" << i << " " << inoData[i].GetDutyCycle() << " " << inoData[i].GetTimestamp() << "\n"; 
-                async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
-                SND = 0;
-              }
-              else if(stream_on[i][1] == 1){
-                os << "c l" << i << " " << inoData[i].GetIlluminance() << " " << inoData[i].GetTimestamp() << "\n"; 
-                async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
-                SND = 0;
-              }
+          for(int i=0; i<N_inos; i++){
+            if(stream_on[i][0] == 1){
+              mtx.lock();
+              os << "c d" << i << " " << inoData[i].GetDutyCycle() << " " << inoData[i].GetTimestamp() << "\n"; 
+              mtx.unlock();
+              async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
+            }
+            else if(stream_on[i][1] == 1){
+              mtx.lock();
+              os << "c l" << i << " " << inoData[i].GetIlluminance() << " " << inoData[i].GetTimestamp() << "\n"; 
+              mtx.unlock();
+              async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
             }
           }
         }
@@ -76,7 +74,9 @@ class conn : public enable_shared_from_this<conn> {
                 data = 2*N_inos+1;
                 os << data;
                 for(int i=0;i<N_inos;++i){
+                  mtx.lock();
                   inoData[i].SetRestartTime();
+                  mtx.unlock();
                 }
                 async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));
               }
@@ -119,13 +119,17 @@ class conn : public enable_shared_from_this<conn> {
               // get
               if(c1 == 103) {
                 std::string comm = line.substr(2);
+                mtx.lock();
                 std::string ret = resolve_get(comm);
+                mtx.unlock();
                 async_write(sock_, buffer(ret), boost::bind(&conn::handle_client, shared_from_this()));  
               }
               // get last minute buffer
               if(c1 == 98) {
                 std::string comm = line.substr(2);
+                mtx.lock();
                 std::string ret = resolve_buffer(comm);
+                mtx.unlock();
                 async_write(sock_, buffer(ret), boost::bind(&conn::handle_client, shared_from_this()));
               }
               // stream on
@@ -255,8 +259,9 @@ class sniff {
           if(index != std::string::npos) {
             val_d = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
             val_o = (bool)std::stoi(line.substr(index+1, 1));
+            mtx.lock();
             inoData[val_a-1].StoreNewData(timestamp, val_l, val_d, val_o);
-            SND = 1;
+            mtx.unlock();
           }
         }
         // informçao do consensus/calibracao
@@ -272,8 +277,10 @@ class sniff {
             val_ref = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
       	    val_ie = (float)std::stoi(line.substr(index+1));
             std::cout << "Setup done\n";
+            mtx.lock();
         	  inoData[val_a-1].SetExternalIlluminance(val_ie);
         	  inoData[val_a-1].SetReference(val_ref);
+            mtx.unlock();
           }  	  
       	}
       }

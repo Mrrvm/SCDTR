@@ -83,7 +83,7 @@ std::string resolve_get(std::string comm) {
     if(index.at(0) == 84) {
       float val=0;
       for(int i=0;i<N_inos;++i) {
-		val+=inoData[i].GetAccumulatedEnergy();
+		    val+=inoData[i].GetAccumulatedEnergy();
       }
       ss << c2 << " " << "T" << " " << val << "\n";
       sol=ss.str();
@@ -103,7 +103,7 @@ std::string resolve_get(std::string comm) {
       // POR CENAS AQUI
       float val=0;
       for(int i=0;i<N_inos;++i) {
-		val+=inoData[i].GetComfortError();
+		    val+=inoData[i].GetComfortError();
       }
       ss << c2 << " " << "T" << " " << val << "\n";
       sol=ss.str();
@@ -122,7 +122,7 @@ std::string resolve_get(std::string comm) {
     if(index.at(0) == 84) {
       float val=0;
       for(int i=0;i<N_inos;++i) {
-		val+=inoData[i].GetComfortVariance();
+		    val+=inoData[i].GetComfortVariance();
       }
       ss << c2 << " " << "T" << " " << val << "\n";
       sol=ss.str();
