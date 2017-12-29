@@ -14,7 +14,7 @@ You can check its goal in [here](https://github.com/Mrrvm/SCDTR/blob/master/proj
 
 Given a lighting system, the objective is to distributedly control it so it maximizes the user confort and minimizes the spent energy. Here the [consensus algorithm](https://github.com/Mrrvm/SCDTR/blob/master/papers/consensus.pdf) is applied to the control system to define its reference based on a network of agents. All this agents contribute to find the optimal solution or to determine infeasibility. A TCP/IP server is used to get statistics out of the network and send them to clients.
 
-The optimization of a lighting system is a currently studied problem, you can check this references for further insight [[1]], [[2]], [[3]], [[4]].
+The optimization of a lighting system is a currently studied problem, you can check this references for further insight [[1]], [[2]], [[3]], [[4]]. To learn more about consensus, check [this](https://web.stanford.edu/~boyd/papers/pdf/admm_distr_stats.pdf).
 
 As a lighting system, we are using 2 luminaires. Each luminaire is composed by a LED, a fotoresistor, an arduino (used as an agent of the network) and other necessary electronics like resistors and capacitors.
 
