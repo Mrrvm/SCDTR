@@ -1,3 +1,13 @@
+/** resolve_get.cpp 
+ *
+ *  Summary:     Returns the client responses according to the request.
+ *  Last Edited: December 29, 2017
+ *  Authors:     Mariana Martins (mrrvm@hotmail.com)
+ *               Filipe Madeira  (filipe.s.c.madeira@gmail.com)
+ *               Carlos Aleluia  (carlos.aleluia@tecnico.ulisboa.pt)
+ *  License:     GNU General Public License v3.0
+ *
+ */
 #include "resolve_get.h"
 
 extern std::vector<Data> inoData;
@@ -150,8 +160,8 @@ std::string resolve_buffer(std::string comm){
   int c3 = std::stoi(index);
   bool variable = 0;
   
-  if(c2==100) variable=1;
-  else variable=0;
+  if(c2 == 100) variable = 1;
+  else variable = 0;
 
   sol2=inoData[c3-1].GetLastMinuteBuffer(variable);
   ss << "b" << " " << sol2 << "\n";

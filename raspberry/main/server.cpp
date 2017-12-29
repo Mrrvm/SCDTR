@@ -1,3 +1,15 @@
+/** server.cpp 
+ *
+ *  Summary:     Generates 2 threads, the main thread receives requests from the client and sends the respective responses; 
+ *               the other thread (sniff thread) receives the sniffed information from the FIFO and saves it.
+ *  Last Edited: December 29, 2017
+ *  Authors:     Mariana Martins (mrrvm@hotmail.com)
+ *               Filipe Madeira  (filipe.s.c.madeira@gmail.com)
+ *               Carlos Aleluia  (carlos.aleluia@tecnico.ulisboa.pt)
+ *  License:     GNU General Public License v3.0
+ *
+ */
+
 #include "resolve_get.h"
 using namespace boost; 
 using namespace boost::asio; 
@@ -7,6 +19,24 @@ std::mutex mtx;
 // shared vector between threads
 std::vector<Data> inoData;
 
+
+/** Class conn
+ *  Gets client requests and sends the respective responses.
+ *  Constructor:
+ *         Instantiates a socket, a serial port and a timer;
+ *         Opens the serial port and sets the baud rate at 115200;
+ *         Initializes the stream variable.
+ *  Private Methods:
+ *         handle_client  : Reads what the client wrote to socket. 
+ *                          Periodacally (5secs) checks if there is something to stream to client.
+ *         handle_stream  : Checks per each arduino if there is something to stream, and streams it to client.
+ *         handle_request : Decided the adequate response according to the request and responds.
+ *         ack_command    : Sends acknowledges to client. 
+ *  Public Methods:    
+ *         create         : Returns a shared pointed with the connection.
+ *         socket         : Returns the socket.
+ *         start          : Outputs that the connection started and is ready for both the server and the client.
+ */
 class conn : public enable_shared_from_this<conn> {
     private:  
         tcp::socket sock_;
@@ -14,8 +44,7 @@ class conn : public enable_shared_from_this<conn> {
         boost::asio::streambuf input_buffer_;
         serial_port sp;
         std::ostringstream os;
-        // d - 0, l - 1
-        bool stream_on[N_inos][2];
+        bool stream_on[N_inos][2]; // duty-cycle - 0, luminosity - 1
 
         conn(io_service& io) 
         :  sock_(io), sp(io), tim(io)  {
@@ -187,6 +216,16 @@ class conn : public enable_shared_from_this<conn> {
         }
 };
 
+/** Class tcp_server
+ *  Accepts a connection and creates a session per client.
+ *  Constructor:
+ *         Instantiates an acceptor at localhost and port 10000;
+ *         Runs start_accept().
+ *  Private Methods:
+ *         start_accept   : Creates a shared pointer for the connection and asynchronously accepts more connections.
+ *         handle_accept  : Called when a connection is accepted, calls the method start from the conn class 
+ *                          and goes back to start_accept.
+ */
 class tcp_server {
     private:  
         tcp::acceptor acceptor_;
@@ -209,6 +248,17 @@ class tcp_server {
 
 };
 
+/** Class sniff
+ *  Gets the information that was written to the fifo by the I2Csniffer.
+ *  Constructor:
+ *         Instantiates a fifo;
+ *         Starts a clock;
+ *         Initializes the vector inoData;
+ *         Runs start_sniff.
+ *  Private Methods:
+ *         start_sniff    : Reads from the fifo until \n. 
+ *         assign_vec     : Analyzes the fifo information and assigns it to the respective vector elements.
+ */
 class sniff {
   private:
     boost::asio::posix::stream_descriptor fifo;
@@ -240,7 +290,8 @@ class sniff {
         end = std::chrono::steady_clock::now();
         timestamp = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
 
-        // a
+        // Analyzes a sequence from an arduino 
+        // e.g. a1l100d50o1, arduino 1, luminosity 100, duty-cycle 50, occupancy 1
         if(line.at(1) == 97 && line.at(2) != 0) {
 
           index = line.find("l");
@@ -264,7 +315,8 @@ class sniff {
             mtx.unlock();
           }
         }
-        // informçao do consensus/calibracao
+        // Analyzes a sequence from the calibration/consensus
+        // e.g. i1t50x40, arduino 1, reference 50, external illuminance 40
       	else if(line.at(1) == 105 && line.at(2) != 0) {
       	  index = line.find("t");
           if(index != std::string::npos) {
