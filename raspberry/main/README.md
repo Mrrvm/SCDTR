@@ -19,6 +19,8 @@ You must also **connect the ground** of the arduinos to the ground of the raspbe
 `server.cpp` is the main server file. It generates 2 threads: the main thread receives requests from the client and sends the respective responses;
 the other thread (sniff thread) receives the sniffed information from the FIFO and saves it.
 
+To have the client interact with the system, you should not forget to connect an USB cable between one arduino and the Rasberry Pi.
+
 <hr>
 
 `data.cpp` and `data.h` are responsible for saving and making calculations with the retrieved information.
