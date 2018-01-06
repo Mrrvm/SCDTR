@@ -1,15 +1,5 @@
-/** data.cpp 
- *
- *  Summary:     Saves and makes calculations with the retrieved information.
- *  Last Edited: December 29, 2017
- *  Authors:     Mariana Martins (mrrvm@hotmail.com)
- *               Filipe Madeira  (filipe.s.c.madeira@gmail.com)
- *               Carlos Aleluia  (carlos.aleluia@tecnico.ulisboa.pt)
- *  License:     GNU General Public License v3.0
- *
- */
-
 #include "data.h"
+
 
 Data::Data(int id_){
   id=id_;

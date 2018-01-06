@@ -43,7 +43,7 @@ public:
   void SetRestartTime();
 
   int GetTimestamp();
-		  
+      
   float GetIlluminance();
 
   float GetDutyCycle();
@@ -69,5 +69,7 @@ public:
 
   
 };
+
+
 
 #endif

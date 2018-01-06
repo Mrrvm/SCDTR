@@ -1,42 +1,13 @@
-/** server.cpp 
- *
- *  Summary:     Generates 2 threads, the main thread receives requests from the client and sends the respective responses; 
- *               the other thread (sniff thread) receives the sniffed information from the FIFO and saves it.
- *  Last Edited: December 29, 2017
- *  Authors:     Mariana Martins (mrrvm@hotmail.com)
- *               Filipe Madeira  (filipe.s.c.madeira@gmail.com)
- *               Carlos Aleluia  (carlos.aleluia@tecnico.ulisboa.pt)
- *  License:     GNU General Public License v3.0
- *
- */
-
 #include "resolve_get.h"
 using namespace boost; 
 using namespace boost::asio; 
 using ip::tcp;
 
-std::mutex mtx;
-// shared vector between threads
+//string buffer
+bool SND;
+
 std::vector<Data> inoData;
 
-
-/** Class conn
- *  Gets client requests and sends the respective responses.
- *  Constructor:
- *         Instantiates a socket, a serial port and a timer;
- *         Opens the serial port and sets the baud rate at 115200;
- *         Initializes the stream variable.
- *  Private Methods:
- *         handle_client  : Reads what the client wrote to socket. 
- *                          Periodacally (5secs) checks if there is something to stream to client.
- *         handle_stream  : Checks per each arduino if there is something to stream, and streams it to client.
- *         handle_request : Decided the adequate response according to the request and responds.
- *         ack_command    : Sends acknowledges to client. 
- *  Public Methods:    
- *         create         : Returns a shared pointed with the connection.
- *         socket         : Returns the socket.
- *         start          : Outputs that the connection started and is ready for both the server and the client.
- */
 class conn : public enable_shared_from_this<conn> {
     private:  
         tcp::socket sock_;
@@ -44,16 +15,18 @@ class conn : public enable_shared_from_this<conn> {
         boost::asio::streambuf input_buffer_;
         serial_port sp;
         std::ostringstream os;
-        bool stream_on[N_inos][2]; // duty-cycle - 0, luminosity - 1
+        // d - 0, l - 1
+        bool stream_on[N_inos][2];
 
         conn(io_service& io) 
         :  sock_(io), sp(io), tim(io)  {
-        	 sp.open("/dev/ttyACM0");    
+           sp.open("/dev/ttyACM0");    
            sp.set_option(serial_port_base::baud_rate(115200));
            for (int i = 0; i < N_inos; ++i) {
              stream_on[i][0] = 0;
              stream_on[i][1] = 0;
            }
+           SND = 0;
         }
         
         void handle_client()   {
@@ -62,30 +35,30 @@ class conn : public enable_shared_from_this<conn> {
           tim.async_wait(boost::bind(&conn::handle_stream, shared_from_this()));   
           
           os.str(std::string());
-    		  boost::asio::async_read_until(sock_, input_buffer_, '\n',
-            	boost::bind(&conn::handle_request, shared_from_this(), _1));
+          boost::asio::async_read_until(sock_, input_buffer_, '\n',
+              boost::bind(&conn::handle_request, shared_from_this(), _1));
           
         }
 
         void handle_stream() {
-          for(int i=0; i<N_inos; i++){
-            if(stream_on[i][0] == 1){
-              mtx.lock();
-              os << "c d" << i << " " << inoData[i].GetDutyCycle() << " " << inoData[i].GetTimestamp() << "\n"; 
-              mtx.unlock();
-              async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
-            }
-            else if(stream_on[i][1] == 1){
-              mtx.lock();
-              os << "c l" << i << " " << inoData[i].GetIlluminance() << " " << inoData[i].GetTimestamp() << "\n"; 
-              mtx.unlock();
-              async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
+          if(SND == 1) {
+            for(int i=0; i<N_inos; i++){
+              if(stream_on[i][0] == 1){
+                os << "c d" << i << " " << inoData[i].GetDutyCycle() << " " << inoData[i].GetTimestamp() << "\n"; 
+                async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
+                SND = 0;
+              }
+              else if(stream_on[i][1] == 1){
+                os << "c l" << i << " " << inoData[i].GetIlluminance() << " " << inoData[i].GetTimestamp() << "\n"; 
+                async_write(sock_, buffer(os.str()), boost::bind(&conn::handle_client, shared_from_this())); 
+                SND = 0;
+              }
             }
           }
         }
 
         void handle_request(const boost::system::error_code& ec) {
-		      
+          
           char c1;
           if (!ec) {
 
@@ -103,9 +76,7 @@ class conn : public enable_shared_from_this<conn> {
                 data = 2*N_inos+1;
                 os << data;
                 for(int i=0;i<N_inos;++i){
-                  mtx.lock();
                   inoData[i].SetRestartTime();
-                  mtx.unlock();
                 }
                 async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));
               }
@@ -143,22 +114,18 @@ class conn : public enable_shared_from_this<conn> {
                   }
                 }
                 os << data;
-                async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));                   		
+                async_write(sp, buffer(os.str()), boost::bind(&conn::ack_command, shared_from_this(), _1));                       
               }
               // get
               if(c1 == 103) {
                 std::string comm = line.substr(2);
-                mtx.lock();
                 std::string ret = resolve_get(comm);
-                mtx.unlock();
                 async_write(sock_, buffer(ret), boost::bind(&conn::handle_client, shared_from_this()));  
               }
               // get last minute buffer
               if(c1 == 98) {
                 std::string comm = line.substr(2);
-                mtx.lock();
                 std::string ret = resolve_buffer(comm);
-                mtx.unlock();
                 async_write(sock_, buffer(ret), boost::bind(&conn::handle_client, shared_from_this()));
               }
               // stream on
@@ -172,7 +139,7 @@ class conn : public enable_shared_from_this<conn> {
                   stream_on[ino-1][1] = 1;
                 } 
               }         
-              // stream off          	         
+              // stream off                    
               if(c1 == 100) {
                 char var = line.at(2);
                 int ino = stoi(line.substr(4));
@@ -193,13 +160,13 @@ class conn : public enable_shared_from_this<conn> {
           }
         }
         void ack_command(const boost::system::error_code& ec) {
-        	if(!ec) {
-        		async_write(sock_, buffer("ack\n"), boost::bind(&conn::handle_client, shared_from_this()));	
-        	}
-        	else {
-        		std::cout << "Error on acknowledge: " << ec.message() << "\n";
-        		exit(0);
-        	}
+          if(!ec) {
+            async_write(sock_, buffer("ack\n"), boost::bind(&conn::handle_client, shared_from_this())); 
+          }
+          else {
+            std::cout << "Error on acknowledge: " << ec.message() << "\n";
+            exit(0);
+          }
         }
 
     public: 
@@ -216,16 +183,6 @@ class conn : public enable_shared_from_this<conn> {
         }
 };
 
-/** Class tcp_server
- *  Accepts a connection and creates a session per client.
- *  Constructor:
- *         Instantiates an acceptor at localhost and port 10000;
- *         Runs start_accept().
- *  Private Methods:
- *         start_accept   : Creates a shared pointer for the connection and asynchronously accepts more connections.
- *         handle_accept  : Called when a connection is accepted, calls the method start from the conn class 
- *                          and goes back to start_accept.
- */
 class tcp_server {
     private:  
         tcp::acceptor acceptor_;
@@ -248,17 +205,6 @@ class tcp_server {
 
 };
 
-/** Class sniff
- *  Gets the information that was written to the fifo by the I2Csniffer.
- *  Constructor:
- *         Instantiates a fifo;
- *         Starts a clock;
- *         Initializes the vector inoData;
- *         Runs start_sniff.
- *  Private Methods:
- *         start_sniff    : Reads from the fifo until \n. 
- *         assign_vec     : Analyzes the fifo information and assigns it to the respective vector elements.
- */
 class sniff {
   private:
     boost::asio::posix::stream_descriptor fifo;
@@ -290,8 +236,7 @@ class sniff {
         end = std::chrono::steady_clock::now();
         timestamp = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
 
-        // Analyzes a sequence from an arduino 
-        // e.g. a1l100d50o1, arduino 1, luminosity 100, duty-cycle 50, occupancy 1
+        // a
         if(line.at(1) == 97 && line.at(2) != 0) {
 
           index = line.find("l");
@@ -310,31 +255,27 @@ class sniff {
           if(index != std::string::npos) {
             val_d = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
             val_o = (bool)std::stoi(line.substr(index+1, 1));
-            mtx.lock();
             inoData[val_a-1].StoreNewData(timestamp, val_l, val_d, val_o);
-            mtx.unlock();
+            SND = 1;
           }
         }
-        // Analyzes a sequence from the calibration/consensus
-        // e.g. i1t50x40, arduino 1, reference 50, external illuminance 40
-      	else if(line.at(1) == 105 && line.at(2) != 0) {
-      	  index = line.find("t");
+        // informçao do consensus/calibracao
+        else if(line.at(1) == 105 && line.at(2) != 0) {
+          index = line.find("t");
           if(index != std::string::npos) {
             val_a = std::stoi(line.substr(2, index-1)) ;
             index_prev = index;
           }
 
-      	  index = line.find("x");
+          index = line.find("x");
           if(index != std::string::npos) {
             val_ref = (float)std::stoi(line.substr(index_prev+1, index-index_prev-1));
-      	    val_ie = (float)std::stoi(line.substr(index+1));
+            val_ie = (float)std::stoi(line.substr(index+1));
             std::cout << "Setup done\n";
-            mtx.lock();
-        	  inoData[val_a-1].SetExternalIlluminance(val_ie);
-        	  inoData[val_a-1].SetReference(val_ref);
-            mtx.unlock();
-          }  	  
-      	}
+            inoData[val_a-1].SetExternalIlluminance(val_ie);
+            inoData[val_a-1].SetReference(val_ref);
+          }     
+        }
       }
       start_sniff();
     }
@@ -357,13 +298,13 @@ int main() {
   }};
 
   // Main thread  
-  try	{
-    	tcp_server server(io_main);
-	    io_main.run();
-	}
-	catch (std::exception& e) {
-	    std::cout << "Exception main thread: " << e.what() << std::endl;
-	}
+  try {
+      tcp_server server(io_main);
+      io_main.run();
+  }
+  catch (std::exception& e) {
+      std::cout << "Exception main thread: " << e.what() << std::endl;
+  }
  
   thread_sniff.join(); 
 }

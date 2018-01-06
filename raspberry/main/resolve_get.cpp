@@ -1,13 +1,3 @@
-/** resolve_get.cpp 
- *
- *  Summary:     Returns the client responses according to the request.
- *  Last Edited: December 29, 2017
- *  Authors:     Mariana Martins (mrrvm@hotmail.com)
- *               Filipe Madeira  (filipe.s.c.madeira@gmail.com)
- *               Carlos Aleluia  (carlos.aleluia@tecnico.ulisboa.pt)
- *  License:     GNU General Public License v3.0
- *
- */
 #include "resolve_get.h"
 
 extern std::vector<Data> inoData;
@@ -74,7 +64,7 @@ std::string resolve_get(std::string comm) {
       // POR AQUI CENAS
       float val=0;
       for(int i=0;i<N_inos;++i) {
-		val+=inoData[i].GetInstantaneousPower();
+    val+=inoData[i].GetInstantaneousPower();
       }
       ss << c2 << " " << "T" << " " << val << "\n";
       sol=ss.str();
@@ -93,7 +83,7 @@ std::string resolve_get(std::string comm) {
     if(index.at(0) == 84) {
       float val=0;
       for(int i=0;i<N_inos;++i) {
-		    val+=inoData[i].GetAccumulatedEnergy();
+    val+=inoData[i].GetAccumulatedEnergy();
       }
       ss << c2 << " " << "T" << " " << val << "\n";
       sol=ss.str();
@@ -113,7 +103,7 @@ std::string resolve_get(std::string comm) {
       // POR CENAS AQUI
       float val=0;
       for(int i=0;i<N_inos;++i) {
-		    val+=inoData[i].GetComfortError();
+    val+=inoData[i].GetComfortError();
       }
       ss << c2 << " " << "T" << " " << val << "\n";
       sol=ss.str();
@@ -132,7 +122,7 @@ std::string resolve_get(std::string comm) {
     if(index.at(0) == 84) {
       float val=0;
       for(int i=0;i<N_inos;++i) {
-		    val+=inoData[i].GetComfortVariance();
+    val+=inoData[i].GetComfortVariance();
       }
       ss << c2 << " " << "T" << " " << val << "\n";
       sol=ss.str();
@@ -160,8 +150,8 @@ std::string resolve_buffer(std::string comm){
   int c3 = std::stoi(index);
   bool variable = 0;
   
-  if(c2 == 100) variable = 1;
-  else variable = 0;
+  if(c2==100) variable=1;
+  else variable=0;
 
   sol2=inoData[c3-1].GetLastMinuteBuffer(variable);
   ss << "b" << " " << sol2 << "\n";
