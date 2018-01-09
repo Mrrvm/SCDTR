@@ -1,6 +1,8 @@
 %The system
-k11 = 0.42; k12 = 0.1; k21 = 0.02; k22 = 0.32;
-L1 = 25; o1 = 180; L2 = 50; o2 = 180;
+%k11 = 0.4; k12 = 0.1; k21 = 0.1; k22 = 0.4;
+%L1 = 25; o1 = 0; L2 = 50; o2 = 0;
+k11 = 2; k12 = 1; k21 = 1; k22 = 2;
+L1 = 300; o1 = 30; L2 = 300; o2 = 0;
 K = [k11, k12 ; k21 , k22];
 L = [L1;L2]; o = [o1;o2];
 
@@ -351,11 +353,11 @@ for i=1:30,
    %compute average with available knowledge
    d1_av = (d1+d2_copy)/2;
    %update local lagrangian
-   y1(:,i)
-   d1
-   d1_av
+   %y1(:,i)
+   %d1
+   %d1_av
    y1(:,i) = y1(:,i) + rho*(d1-d1_av);
-   y1(:,i)
+   %y1(:,i)
    
    %save data for plots
    av1(i) = d1_av(1);
@@ -364,7 +366,7 @@ end;
 
 % SOLVE WITH MATLAB QUADPROG
 %The cost function
-c1 = 1; c2 = 1; q1 = 0.0; q2 = 0.0;
+c1 = 1; c2 = 1; q1 = 0; q2 = 0;
 c = [c1 c2]; Q = [q1+rho 0; 0 q2];
 A = -K; b = [o1-L1; o2-L2];
 lb = [0;0]; ub = [255;255];
@@ -383,23 +385,26 @@ title('primal vars');
 xlabel('iter');
 figure(15);
 t = 0:255;
-constr1 = (L1-o1)/0.1-(0.44/0.1)*t;
-constr2 = (L2-o2)/0.3-(0.02/0.3)*t;
+%constr1 = (L1-o1)/0.1-(0.4/0.1)*t;
+%constr2 = (L2-o2)/0.4-(0.1/0.4)*t;
+constr1 = (L1-o1)/1-(2/1)*t;
+constr2 = (L2-o2)/2-(1/2)*t;
 [x,y]=meshgrid(t,t);
 hold on;
 z = c1*x+c2*y+q1*x.^2+q2*y.^2;
 contour(x,y,z);
-plot(t,constr1,t,constr2,'LineWidth',2);
-plot(t,zeros(size(t)),'k','LineWidth',2);
-plot(zeros(size(t)),t,'k','LineWidth',2);
-plot(t,255*ones(size(t)),'k','LineWidth',2);
-plot(255*ones(size(t)),t,'k','LineWidth',2);
-plot(av1,av2,'--','LineWidth',2);
+%plot(t,constr1,t,constr2,'LineWidth',2);
+plot(t,constr1,'r','LineWidth',2);
+%plot(t,zeros(size(t)),'k','LineWidth',2);
+plot(zeros(size(t)),t,'r','LineWidth',2);
+%plot(t,255*ones(size(t)),'k','LineWidth',2);
+plot(255*ones(size(t)),t,'r','LineWidth',2);
+%plot(av1,av2,'--','LineWidth',2);
 plot(av1,av2,'bo');
 title('trajectory');
 xlabel('d_1');
 ylabel('d_2');
-plot(d(1),d(2),'r*')
+%plot(d(1),d(2),'r*')
 axis([-10,260,-10,260]);
 hold off;
 
