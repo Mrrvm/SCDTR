@@ -1,32 +1,32 @@
 %The system
-%k11 = 0.4; k12 = 0.1; k21 = 0.1; k22 = 0.4;
-%L1 = 25; o1 = 0; L2 = 50; o2 = 0;
-k11 = 2; k12 = 1; k21 = 1; k22 = 2;
-L1 = 300; o1 = 30; L2 = 300; o2 = 0;
+k11 = 0.445; k12 = 0.033; k21 = 0.021; k22 = 0.333;
+L1 = 50; o1 = 0; L2 = 50; o2 = 0;
+%k11 = 2; k12 = 1; k21 = 1; k22 = 2;
+%L1 = 300; o1 = 30; L2 = 300; o2 = 0;
 K = [k11, k12 ; k21 , k22];
 L = [L1;L2]; o = [o1;o2];
 
 %The cost function
-c1 = 1; c2 = 1; q1 = 0.0; q2 = 0.0;
+c1 = 1; c2 = 1; q1 = 0; q2 = 0;
 c = [c1 c2]; Q = [q1 0; 0 q2];
 
 % SOLVE WITH CONSENSUS
-rho = 0.1;
+rho = 0.01;
 %node 1 initialization
 d1 = [0;0];
-d1_av = [20;20];
+d1_av = [0;0];
 d2_copy = [0;0];
 y1 = zeros(2,50);%[0;0];
 y1(:,1)=[4.36;1.24];
 k1 = [k11;k12]; 
 %node 2 initialization
 d2 = [0;0];
-d2_av = [20;20];
+d2_av = [0;0];
 d1_copy = [0;0];
 y2 = [0;0];
 k2 = [k21;k22]; 
 %iterations
-for i=1:30,
+for i=1:50,
    % node 1
    d11_best = -1;
    d12_best = -1;
@@ -70,12 +70,12 @@ for i=1:30,
    d11bl(i) = p11*z11+p11*k11/n*(w1-u1);
    d12bl(i) = p12*z12+p12*k12/n*(w1-u1);
 
-   u1
-   p11*z11
-   p12*z12
-   p11*k11
-   p12*k12
-   1/n
+   %u1
+   %p11*z11
+   %p12*z12
+   %p11*k11
+   %p12*k12
+   %1/n
    
    
    %check feasibility of minimum constrained to linear boundary
@@ -366,7 +366,7 @@ end;
 
 % SOLVE WITH MATLAB QUADPROG
 %The cost function
-c1 = 1; c2 = 1; q1 = 0; q2 = 0;
+c1 = 4; c2 = 1; q1 = 0; q2 = 0;
 c = [c1 c2]; Q = [q1+rho 0; 0 q2];
 A = -K; b = [o1-L1; o2-L2];
 lb = [0;0]; ub = [255;255];
@@ -379,32 +379,33 @@ d_ = d2_av
 l_ = K*d_+o
 %Plots
 figure(10);
-plot(1:30, av1, 1:30, av2);
+plot(1:50, av1, 1:50, av2);
 legend('d_1','d_2');
-title('primal vars');
-xlabel('iter');
+title('Evolucao de d_i');
+ylabel('d_i');
+xlabel('iteracao');
 figure(15);
 t = 0:255;
-%constr1 = (L1-o1)/0.1-(0.4/0.1)*t;
-%constr2 = (L2-o2)/0.4-(0.1/0.4)*t;
-constr1 = (L1-o1)/1-(2/1)*t;
-constr2 = (L2-o2)/2-(1/2)*t;
+constr1 = (L1-o1)/0.033-(0.445/0.033)*t;
+constr2 = (L2-o2)/0.333-(0.012/0.333)*t;
+%constr1 = (L1-o1)/1-(2/1)*t;
+%constr2 = (L2-o2)/2-(1/2)*t;
 [x,y]=meshgrid(t,t);
 hold on;
 z = c1*x+c2*y+q1*x.^2+q2*y.^2;
 contour(x,y,z);
-%plot(t,constr1,t,constr2,'LineWidth',2);
-plot(t,constr1,'r','LineWidth',2);
-%plot(t,zeros(size(t)),'k','LineWidth',2);
-plot(zeros(size(t)),t,'r','LineWidth',2);
-%plot(t,255*ones(size(t)),'k','LineWidth',2);
-plot(255*ones(size(t)),t,'r','LineWidth',2);
-%plot(av1,av2,'--','LineWidth',2);
+plot(t,constr1,t,constr2,'LineWidth',2);
+plot(t,constr1,'LineWidth',2);
+plot(t,zeros(size(t)),'k','LineWidth',2);
+plot(zeros(size(t)),t,'k','LineWidth',2);
+plot(t,255*ones(size(t)),'k','LineWidth',2);
+plot(255*ones(size(t)),t,'k','LineWidth',2);
+plot(av1,av2,'--','LineWidth',2);
 plot(av1,av2,'bo');
-title('trajectory');
+title('Trajetoria');
 xlabel('d_1');
 ylabel('d_2');
-%plot(d(1),d(2),'r*')
+plot(d(1),d(2),'r*')
 axis([-10,260,-10,260]);
 hold off;
 
