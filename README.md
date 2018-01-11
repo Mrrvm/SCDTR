@@ -6,7 +6,7 @@ This project was developed within the [Distributed Control of Real-Time Systems 
   - Filipe Madeira
   - [Mariana Martins](http://web.ist.utl.pt/ist180856/)
 
-We made a [cringy video](https://www.youtube.com/watch?v=THZRVS4BNpQ&feature=youtu.be) showing it working.
+We made a [cringy video](https://youtu.be/THZRVS4BNpQ) showing it working.
 
 You can check its goal in [here](https://github.com/Mrrvm/SCDTR/blob/master/project_goal.pdf). Or read the following summary.
 
